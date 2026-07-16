@@ -23,7 +23,7 @@ function decodeSession(token: string | undefined): { role: Role } | null {
   }
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const session = decodeSession(request.cookies.get("session")?.value)
 
