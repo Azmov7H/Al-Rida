@@ -567,3 +567,55 @@ components
 # Final Vision
 
 The Dashboard should provide a complete enterprise management experience for Al Reda, allowing administrators and staff to efficiently control every aspect of the business—from products and inventory to orders, customers, analytics, and website content. The interface must prioritize speed, clarity, scalability, and Arabic-first usability while remaining flexible enough to support future ERP, CRM, and multi-branch integrations.
+
+---
+
+# API Mapping
+
+The Dashboard consumes the admin-facing endpoints defined in `Routes.md`. All dashboard and analytics endpoints require authentication and are gated by RBAC (`Manager` / `Admin` roles). They return the standardized response envelope (`{ success, message, data, meta }`).
+
+## Dashboard Summary APIs
+
+```text
+GET  /api/dashboard/stats       # KPI totals: products, orders, revenue, pending, low stock, new customers
+GET  /api/dashboard/revenue     # Revenue over time (daily / weekly / monthly)
+GET  /api/dashboard/orders      # Recent orders list with status + payment summary
+GET  /api/dashboard/products    # Product inventory snapshot (stock, status, featured)
+GET  /api/dashboard/customers   # Customer growth + lifetime value summary
+```
+
+Used by section 1 (Dashboard Home) to populate statistic cards, the sales chart, best-selling products, latest orders, and recent activity.
+
+## Analytics APIs
+
+```text
+GET  /api/analytics/sales       # Sales trend (filterable: daily/weekly/monthly/yearly/custom)
+GET  /api/analytics/products    # Product performance (views, orders, revenue per product)
+GET  /api/analytics/customers   # Customer growth + conversion rate
+GET  /api/analytics/inventory   # Inventory health (low stock, out of stock, movement)
+```
+
+Used by section 12 (Reports) and section 13 (Analytics) for charts, exports, and filtered date ranges.
+
+## Management APIs
+
+The remaining Dashboard sections map to the domain APIs already documented in `Routes.md`:
+
+```text
+Products      →  GET/POST    /api/products      ·  GET/PATCH/DELETE  /api/products/:id
+Categories    →  GET/POST    /api/categories    ·  PATCH/DELETE       /api/categories/:id
+Brands        →  GET/POST    /api/brands        ·  PATCH/DELETE       /api/brands/:id
+Inventory     →  GET         /api/inventory     ·  PATCH             /api/inventory/:id
+                  POST        /api/inventory/adjustment
+                  GET         /api/inventory/history
+Orders        →  GET/POST    /api/orders        ·  GET/PATCH/DELETE  /api/orders/:id
+                  PATCH       /api/orders/:id/status   ·  PATCH  /api/orders/:id/payment
+Customers     →  GET         /api/users/me      ·  GET/PATCH/DELETE  /api/users/:id
+Reviews       →  GET/POST    /api/reviews       ·  PATCH/DELETE       /api/reviews/:id
+Contact       →  GET         /api/contact/messages        ·  PATCH  /api/contact/messages/:id
+Users/Roles   →  GET         /api/users         ·  PATCH/DELETE       /api/users/:id
+Settings      →  GET/PATCH   /api/settings
+Media Upload  →  POST        /api/upload/image  ·  POST  /api/upload/document  ·  DELETE  /api/upload/:id
+```
+
+> Note: The analytics endpoints currently return placeholder aggregates; wiring to live aggregation pipelines is a documented follow-up (see `Routes.md` Future Integrations).

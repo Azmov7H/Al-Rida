@@ -3,6 +3,11 @@ import { connectDB } from "@/lib/db"
 import { Review, type IReview } from "@/models/review"
 
 export const reviewRepository = {
+  async list(page = 1, limit = 50): Promise<IReview[]> {
+    await connectDB()
+    return Review.find().sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean()
+  },
+
   async listByProduct(productId: string): Promise<IReview[]> {
     await connectDB()
     return Review.find({ product: productId }).sort({ createdAt: -1 }).lean()

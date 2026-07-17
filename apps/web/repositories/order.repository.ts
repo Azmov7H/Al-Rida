@@ -17,6 +17,16 @@ export const orderRepository = {
     return { items, total, page, limit }
   },
 
+  async listForAdmin(page = 1, limit = 20, filter: Record<string, unknown> = {}) {
+    await connectDB()
+    const skip = (page - 1) * limit
+    const [items, total] = await Promise.all([
+      Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Order.countDocuments(filter),
+    ])
+    return { items, total, page, limit }
+  },
+
   async create(data: Partial<IOrder>): Promise<IOrder> {
     await connectDB()
     return Order.create(data)
