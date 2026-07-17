@@ -40,7 +40,7 @@ export const categories = [
   { name: "كوالين", href: "/categories/cylinders", count: 62 },
   { name: "أوكر", href: "/categories/handles", count: 96 },
   { name: "مفصلات", href: "/categories/hinges", count: 74 },
-  { name: "اسطوانات", href: "/categories/cylinders", count: 58 },
+  { name: "اسطوانات", href: "/categories/coil-springs", count: 58 },
   { name: "أقفال ذكية", href: "/categories/smart-locks", count: 41 },
   { name: "إكسسوارات الأبواب", href: "/categories/accessories", count: 110 },
 ]

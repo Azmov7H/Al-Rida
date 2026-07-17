@@ -14,20 +14,21 @@ for (const line of readFileSync(".env.local", "utf8").split("\n")) {
 
 const NAME = "ali"
 const EMAIL = "ali@alreda.example"
-const PASSWORD = "admin"
+const PASSWORD = "admin123"
 const ROLE = "admin" as const
 
 async function seedAdmin() {
   await connectDB()
 
+  const passwordHash = await bcrypt.hash(PASSWORD, 12)
   const existing = await userRepository.findByEmail(EMAIL)
   if (existing) {
-    console.log(`Admin user already exists: ${EMAIL}`)
+    await userRepository.update(existing._id.toString(), { passwordHash, role: ROLE, name: NAME })
+    console.log(`Updated admin user: ${EMAIL} (password: ${PASSWORD})`)
     await mongoose.disconnect()
     return
   }
 
-  const passwordHash = await bcrypt.hash(PASSWORD, 12)
   await userRepository.create({
     email: EMAIL,
     name: NAME,

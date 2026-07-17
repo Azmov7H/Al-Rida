@@ -3,9 +3,6 @@
 import * as React from "react"
 import { useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
-import type { IBrand } from "@/models/brand"
-import type { ICategory } from "@/models/category"
-import type { IProduct } from "@/models/product"
 
 const STATUSES = [
   { value: "active", label: "نشط" },
@@ -59,9 +56,27 @@ export function ProductForm({
   product,
   formAction,
 }: {
-  brands: IBrand[]
-  categories: ICategory[]
-  product?: IProduct
+  brands: { _id?: string; name: string; slug: string }[]
+  categories: { _id?: string; name: string; slug: string }[]
+  product?: {
+    _id?: string
+    name: string
+    slug: string
+    sku: string
+    barcode?: string
+    brand?: string
+    category?: string
+    price: number
+    salePrice?: number
+    cost?: number
+    stock: number
+    material?: string
+    finish?: string
+    country?: string
+    warranty?: string
+    tags?: string[]
+    status: string
+  }
   formAction: (formData: FormData) => void
 }) {
   const p = product
@@ -78,7 +93,7 @@ export function ProductForm({
         >
           <option value="">اختر العلامة التجارية</option>
           {brands.map((b) => (
-            <option key={b._id?.toString()} value={b._id?.toString()}>
+            <option key={b._id} value={b._id}>
               {b.name}
             </option>
           ))}
@@ -93,7 +108,7 @@ export function ProductForm({
         >
           <option value="">اختر الفئة</option>
           {categories.map((c) => (
-            <option key={c._id?.toString()} value={c._id?.toString()}>
+            <option key={c._id} value={c._id}>
               {c.name}
             </option>
           ))}

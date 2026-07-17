@@ -1,5 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server"
+import jwt from "jsonwebtoken"
 import { hasRole, type Role } from "@/constants/roles"
+
+const SECRET = process.env.JWT_SECRET ?? "change-me"
 
 const PUBLIC_PATHS = [
   "/",
@@ -16,8 +19,8 @@ const ADMIN_PREFIX = "/dashboard"
 function decodeSession(token: string | undefined): { role: Role } | null {
   if (!token) return null
   try {
-    const payload = JSON.parse(Buffer.from(token, "base64").toString())
-    return { role: payload.role as Role }
+    const payload = jwt.verify(token, SECRET) as { role?: Role }
+    return payload.role ? { role: payload.role } : null
   } catch {
     return null
   }

@@ -1,28 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import {
-  LayoutDashboard,
-  Package,
-  FolderTree,
-  Tag,
-  Boxes,
-  ShoppingCart,
-  Users,
-  Star,
-  MessageSquare,
-  Megaphone,
-  Image as ImageIcon,
-  FileBarChart,
-  BarChart3,
-  UserCog,
-  ShieldCheck,
-  Activity,
-  FileText,
-  Settings,
-  UserCircle,
-  LogOut,
-} from "lucide-react"
+import { LogOut } from "lucide-react"
 import { getSession } from "@/lib/auth/session"
 import { hasRole } from "@/constants/roles"
 import { DashboardSidebar } from "@/components/dashboard/layout/sidebar"
@@ -34,48 +13,6 @@ export const metadata: Metadata = {
     template: `%s · ${siteConfig.name}`,
   },
 }
-
-const NAV = [
-  { section: "عام", items: [{ label: "الرئيسية", href: "/dashboard", icon: LayoutDashboard }] },
-  {
-    section: "الكتالوج",
-    items: [
-      { label: "المنتجات", href: "/dashboard/products", icon: Package },
-      { label: "الفئات", href: "/dashboard/categories", icon: FolderTree },
-      { label: "العلامات التجارية", href: "/dashboard/brands", icon: Tag },
-      { label: "المخزون", href: "/dashboard/inventory", icon: Boxes },
-    ],
-  },
-  {
-    section: "العمليات",
-    items: [
-      { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingCart },
-      { label: "العملاء", href: "/dashboard/customers", icon: Users },
-      { label: "التقييمات", href: "/dashboard/reviews", icon: Star },
-      { label: "رسائل التواصل", href: "/dashboard/contact", icon: MessageSquare },
-    ],
-  },
-  {
-    section: "النمو",
-    items: [
-      { label: "التسويق", href: "/dashboard/marketing", icon: Megaphone },
-      { label: "مكتبة الوسائط", href: "/dashboard/media", icon: ImageIcon },
-      { label: "التقارير", href: "/dashboard/reports", icon: FileBarChart },
-      { label: "التحليلات", href: "/dashboard/analytics", icon: BarChart3 },
-    ],
-  },
-  {
-    section: "النظام",
-    items: [
-      { label: "المستخدمون", href: "/dashboard/users", icon: UserCog },
-      { label: "الأدوار والصلاحيات", href: "/dashboard/roles", icon: ShieldCheck },
-      { label: "سجل النشاطات", href: "/dashboard/activity", icon: Activity },
-      { label: "محتوى الموقع", href: "/dashboard/content", icon: FileText },
-      { label: "الإعدادات", href: "/dashboard/settings", icon: Settings },
-      { label: "الملف الشخصي", href: "/dashboard/profile", icon: UserCircle },
-    ],
-  },
-]
 
 export default async function DashboardLayout({
   children,
@@ -89,7 +26,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] text-[#1E293B]">
-      <DashboardSidebar nav={NAV} user={session} />
+      <DashboardSidebar user={session} />
       <div className="flex min-w-0 flex-1 flex-col lg:mr-72">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#E2E8F0] bg-white/80 px-5 backdrop-blur lg:px-8">
           <div className="flex items-center gap-3">

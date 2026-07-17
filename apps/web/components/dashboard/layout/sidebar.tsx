@@ -4,27 +4,73 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
+import {
+  LayoutDashboard,
+  Package,
+  FolderTree,
+  Tag,
+  Boxes,
+  ShoppingCart,
+  Users,
+  Star,
+  MessageSquare,
+  Megaphone,
+  Image as ImageIcon,
+  FileBarChart,
+  BarChart3,
+  UserCog,
+  ShieldCheck,
+  Activity,
+  FileText,
+  Settings,
+  UserCircle,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { SessionPayload } from "@/lib/auth/session"
 
-export interface NavItem {
-  label: string
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-}
+const NAV = [
+  { section: "عام", items: [{ label: "الرئيسية", href: "/dashboard", icon: LayoutDashboard }] },
+  {
+    section: "الكتالوج",
+    items: [
+      { label: "المنتجات", href: "/dashboard/products", icon: Package },
+      { label: "الفئات", href: "/dashboard/categories", icon: FolderTree },
+      { label: "العلامات التجارية", href: "/dashboard/brands", icon: Tag },
+      { label: "المخزون", href: "/dashboard/inventory", icon: Boxes },
+    ],
+  },
+  {
+    section: "العمليات",
+    items: [
+      { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingCart },
+      { label: "العملاء", href: "/dashboard/customers", icon: Users },
+      { label: "التقييمات", href: "/dashboard/reviews", icon: Star },
+      { label: "رسائل التواصل", href: "/dashboard/contact", icon: MessageSquare },
+    ],
+  },
+  {
+    section: "النمو",
+    items: [
+      { label: "التسويق", href: "/dashboard/marketing", icon: Megaphone },
+      { label: "مكتبة الوسائط", href: "/dashboard/media", icon: ImageIcon },
+      { label: "التقارير", href: "/dashboard/reports", icon: FileBarChart },
+      { label: "التحليلات", href: "/dashboard/analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    section: "النظام",
+    items: [
+      { label: "المستخدمون", href: "/dashboard/users", icon: UserCog },
+      { label: "الأدوار والصلاحيات", href: "/dashboard/roles", icon: ShieldCheck },
+      { label: "سجل النشاطات", href: "/dashboard/activity", icon: Activity },
+      { label: "محتوى الموقع", href: "/dashboard/content", icon: FileText },
+      { label: "الإعدادات", href: "/dashboard/settings", icon: Settings },
+      { label: "الملف الشخصي", href: "/dashboard/profile", icon: UserCircle },
+    ],
+  },
+]
 
-export interface NavSection {
-  section: string
-  items: NavItem[]
-}
-
-export function DashboardSidebar({
-  nav,
-  user,
-}: {
-  nav: NavSection[]
-  user: SessionPayload
-}) {
+export function DashboardSidebar({ user }: { user: SessionPayload }) {
   const pathname = usePathname()
   const [open, setOpen] = React.useState(false)
 
@@ -35,7 +81,7 @@ export function DashboardSidebar({
         <span className="text-xs text-[#64748B]">لوحة التحكم</span>
       </div>
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-        {nav.map((group) => (
+        {NAV.map((group) => (
           <div key={group.section}>
             <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">
               {group.section}
