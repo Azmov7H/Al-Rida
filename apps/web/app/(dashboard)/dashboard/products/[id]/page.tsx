@@ -19,7 +19,35 @@ async function load(id: string) {
       brandRepository.list(),
       categoryRepository.list(),
     ])
-    return { product, brands, categories }
+    if (!product) return { product: null, brands: [], categories: [] }
+    const plainProduct = {
+      _id: product._id?.toString(),
+      name: product.name,
+      slug: product.slug,
+      sku: product.sku,
+      barcode: product.barcode,
+      brand: product.brand?.toString(),
+      category: product.category?.toString(),
+      price: product.price,
+      salePrice: product.salePrice,
+      cost: product.cost,
+      stock: product.stock,
+      material: product.material,
+      finish: product.finish,
+      country: product.country,
+      warranty: product.warranty,
+      tags: product.tags,
+      status: product.status,
+    }
+    return {
+      product: plainProduct,
+      brands: brands.map((b) => ({ _id: b._id?.toString(), name: b.name, slug: b.slug })),
+      categories: categories.map((c) => ({
+        _id: c._id?.toString(),
+        name: c.name,
+        slug: c.slug,
+      })),
+    }
   } catch {
     return { product: null, brands: [], categories: [] }
   }

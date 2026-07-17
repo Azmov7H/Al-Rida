@@ -66,6 +66,8 @@ export default async function ProductDetailPage({
       : String(product.category ?? "")
   const available = product.stock > 0
 
+  const images = product.images.map((i) => ({ url: i.url, alt: i.alt }))
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -109,7 +111,7 @@ export default async function ProductDetailPage({
       </nav>
 
       <div className="grid gap-10 lg:grid-cols-2">
-        <ProductGallery images={product.images} name={product.name} />
+        <ProductGallery images={images} name={product.name} />
 
         <div className="flex flex-col gap-5">
           <span className="text-sm font-semibold uppercase tracking-wide text-[#F58220]">

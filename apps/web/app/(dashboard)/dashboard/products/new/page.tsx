@@ -17,7 +17,14 @@ async function loadOptions() {
       brandRepository.list(),
       categoryRepository.list(),
     ])
-    return { brands, categories }
+    return {
+      brands: brands.map((b) => ({ _id: b._id?.toString(), name: b.name, slug: b.slug })),
+      categories: categories.map((c) => ({
+        _id: c._id?.toString(),
+        name: c.name,
+        slug: c.slug,
+      })),
+    }
   } catch {
     return { brands: [], categories: [] }
   }
