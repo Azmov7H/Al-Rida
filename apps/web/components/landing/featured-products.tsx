@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import { Check } from "lucide-react"
 import { Section, SectionTitle } from "./section"
 import { featuredProducts as fallbackFeaturedProducts } from "@/lib/landing-data"
@@ -11,6 +12,7 @@ type FeaturedProduct = {
   availability: string
   spec: string
   image: string
+  href: string
   salePrice: number | null
 }
 
@@ -25,6 +27,7 @@ export function FeaturedProducts({ products }: { products?: FeaturedProduct[] })
           availability: product.availability,
           spec: product.spec,
           image: productImage(i),
+          href: "/products",
           salePrice: null,
         }))
 
@@ -41,7 +44,10 @@ export function FeaturedProducts({ products }: { products?: FeaturedProduct[] })
             key={product.sku}
             className="flex flex-col overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-sm transition-shadow hover:shadow-md"
           >
-            <div className="relative aspect-square border-b border-[#E2E8F0] bg-[#F8FAFC]">
+            <Link
+              href={product.href}
+              className="relative block aspect-square border-b border-[#E2E8F0] bg-[#F8FAFC]"
+            >
               <Image
                 src={product.image || productImage(i)}
                 alt={product.name}
@@ -49,21 +55,31 @@ export function FeaturedProducts({ products }: { products?: FeaturedProduct[] })
                 sizes="(max-width: 640px) 100vw, 25vw"
                 className="object-cover"
               />
-            </div>
+              {product.salePrice ? (
+                <span className="absolute end-3 top-3 rounded-full bg-[#F58220] px-3 py-1 text-xs font-semibold text-white">
+                  عرض
+                </span>
+              ) : null}
+            </Link>
             <div className="flex flex-1 flex-col gap-2 p-4">
               <span className="text-xs font-semibold uppercase tracking-wide text-[#F58220]">
                 {product.brand}
               </span>
-              <h3 className="font-semibold text-[#1E293B]">{product.name}</h3>
+              <Link href={product.href} className="font-semibold text-[#1E293B] hover:text-[#0F3B73]">
+                {product.name}
+              </Link>
               <span className="text-xs text-[#64748B]">SKU: {product.sku}</span>
               <p className="text-xs text-[#64748B]">{product.spec}</p>
               <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-[#16A34A]/10 px-2.5 py-1 text-xs font-medium text-[#16A34A]">
                 <Check className="size-3.5" />
                 {product.availability}
               </span>
-              <button className="mt-auto inline-flex h-11 items-center justify-center rounded-lg bg-[#0F3B73] text-sm font-semibold text-white transition-colors hover:bg-[#0C2F5C]">
+              <Link
+                href={product.href}
+                className="mt-auto inline-flex h-11 items-center justify-center rounded-lg bg-[#0F3B73] text-sm font-semibold text-white transition-colors hover:bg-[#0C2F5C]"
+              >
                 عرض التفاصيل
-              </button>
+              </Link>
             </div>
           </article>
         ))}

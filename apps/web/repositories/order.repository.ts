@@ -38,4 +38,37 @@ export const orderRepository = {
       { new: true },
     ).lean()
   },
+
+  async findByOrderNumber(orderNumber: string): Promise<IOrder | null> {
+    await connectDB()
+    return Order.findOne({ orderNumber }).lean()
+  },
+
+  async markPaid(orderNumber: string): Promise<IOrder | null> {
+    await connectDB()
+    return Order.findOneAndUpdate(
+      { orderNumber },
+      {
+        $set: { paymentStatus: "paid", status: "confirmed" },
+        $push: {
+          timeline: {
+            status: "confirmed",
+            actor: "system",
+            timestamp: new Date(),
+          },
+        },
+      },
+      { new: true },
+    ).lean()
+  },
+
+  async updateFields(id: string, data: Partial<IOrder>): Promise<IOrder | null> {
+    await connectDB()
+    return Order.findByIdAndUpdate(id, data, { new: true }).lean()
+  },
+
+  async remove(id: string): Promise<void> {
+    await connectDB()
+    await Order.findByIdAndDelete(id)
+  },
 }

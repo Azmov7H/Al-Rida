@@ -17,6 +17,7 @@ type LandingFeaturedProduct = {
   availability: string
   spec: string
   image: string
+  href: string
   salePrice: number | null
 }
 
@@ -48,6 +49,7 @@ export default async function LandingPage() {
         availability: product.stock > 0 ? "متوفر" : "غير متوفر",
         spec: categoryName,
         image: product.images?.[0]?.url ?? "",
+        href: `/products/${product.slug}`,
         salePrice: product.salePrice ?? null,
       }
     })
