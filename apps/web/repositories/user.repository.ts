@@ -7,6 +7,11 @@ export const userRepository = {
     return User.findOne({ email }).lean()
   },
 
+  async list(page = 1, limit = 50): Promise<IUser[]> {
+    await connectDB()
+    return User.find().sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean()
+  },
+
   async findById(id: string): Promise<IUser | null> {
     await connectDB()
     return User.findById(id).lean()

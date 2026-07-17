@@ -13,7 +13,7 @@ export const authService = {
     return user
   },
 
-  async register(input: RegisterInput) {
+  async register(input: Omit<RegisterInput, "confirmPassword">) {
     const existing = await userRepository.findByEmail(input.email)
     if (existing) {
       throw new Error("Email already registered")

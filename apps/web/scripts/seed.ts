@@ -1,8 +1,18 @@
+import { readFileSync } from "node:fs"
 import { connectDB, mongoose } from "@/lib/db"
 import { Brand } from "@/models/brand"
 import { Category } from "@/models/category"
 import { Product } from "@/models/product"
 import { productImages } from "@/lib/images"
+
+for (const line of readFileSync(".env.local", "utf8").split("\n")) {
+  const i = line.indexOf("=")
+  if (i > 0 && !line.startsWith("#")) {
+    const key = line.slice(0, i).trim()
+    const val = line.slice(i + 1).trim().replace(/^"|"$/g, "")
+    if (!(key in process.env)) process.env[key] = val
+  }
+}
 
 const BRANDS = [
   { name: "Mul-T-Lock", slug: "mul-t-lock" },

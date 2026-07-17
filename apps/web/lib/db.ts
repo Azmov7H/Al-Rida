@@ -1,4 +1,5 @@
 import mongoose from "mongoose"
+import "@/models"
 
 interface MongooseCache {
   conn: typeof mongoose | null
@@ -6,12 +7,16 @@ interface MongooseCache {
 }
 
 const globalForMongoose = globalThis as unknown as {
-  mongoose: MongooseCache
+  mongoose?: MongooseCache
 }
 
-const cached = globalForMongoose.mongoose ?? {
+const cached: MongooseCache = globalForMongoose.mongoose ?? {
   conn: null,
   promise: null,
+}
+
+if (!globalForMongoose.mongoose) {
+  globalForMongoose.mongoose = cached
 }
 
 async function connectDB(): Promise<typeof mongoose> {
@@ -25,13 +30,19 @@ async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(uri, {
-      bufferCommands: false,
-    })
+    cached.promise = mongoose
+      .connect(uri, { bufferCommands: false })
+      .then((m) => {
+        cached.conn = m
+        return m
+      })
+      .catch((err) => {
+        cached.promise = null
+        throw err
+      })
   }
 
-  cached.conn = await cached.promise
-  return cached.conn
+  return cached.promise
 }
 
 export { connectDB, mongoose }
