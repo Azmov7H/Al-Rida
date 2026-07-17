@@ -112,6 +112,7 @@ Assets
 * [Orders](Orders.md) — Order lifecycle, payments, inventory, management
 * [Checkout](Checkout.md) — Checkout flow, pricing, order placement, security
 * [Dashboard](Dashboard.md) — Admin dashboard pages, widgets, RBAC, and API mapping
+* [SEO](Seo.md) — Technical/on-page/local SEO, metadata, structured data, sitemap, robots
 * [API Routes](Routes.md) — Route handlers, response format, validation, RBAC
 
 ---

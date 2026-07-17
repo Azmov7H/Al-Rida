@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "Al Reda",
+  name: "Al Rida",
   description:
     "Premium door hardware e-commerce — locks, handles, hinges, cylinders, smart locks, and accessories.",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
