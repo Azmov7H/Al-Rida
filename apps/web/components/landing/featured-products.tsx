@@ -1,10 +1,33 @@
 import Image from "next/image"
 import { Check } from "lucide-react"
 import { Section, SectionTitle } from "./section"
-import { featuredProducts } from "@/lib/landing-data"
+import { featuredProducts as fallbackFeaturedProducts } from "@/lib/landing-data"
 import { productImage } from "@/lib/images"
 
-export function FeaturedProducts() {
+type FeaturedProduct = {
+  name: string
+  brand: string
+  sku: string
+  availability: string
+  spec: string
+  image: string
+  salePrice: number | null
+}
+
+export function FeaturedProducts({ products }: { products?: FeaturedProduct[] }) {
+  const data: FeaturedProduct[] =
+    products && products.length > 0
+      ? products
+      : fallbackFeaturedProducts.map((product, i) => ({
+          name: product.name,
+          brand: product.brand,
+          sku: product.sku,
+          availability: product.availability,
+          spec: product.spec,
+          image: productImage(i),
+          salePrice: null,
+        }))
+
   return (
     <Section className="bg-white">
       <SectionTitle
@@ -13,14 +36,14 @@ export function FeaturedProducts() {
         description="منتجات أصلية بمواصفات فنية وضمان جودة."
       />
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {featuredProducts.map((product, i) => (
+        {data.map((product, i) => (
           <article
             key={product.sku}
             className="flex flex-col overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="relative aspect-square border-b border-[#E2E8F0] bg-[#F8FAFC]">
               <Image
-                src={productImage(i)}
+                src={product.image || productImage(i)}
                 alt={product.name}
                 fill
                 sizes="(max-width: 640px) 100vw, 25vw"
