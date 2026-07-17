@@ -12,7 +12,7 @@ for (const line of readFileSync(".env.local", "utf8").split("\n")) {
   }
 }
 
-const NAME = "ali"
+const NAME = "Taha Kasem Alreda"
 const EMAIL = "ali@alreda.example"
 const PASSWORD = "admin123"
 const ROLE = "admin" as const
