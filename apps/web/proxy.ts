@@ -18,6 +18,16 @@ const PUBLIC_PATHS = [
   "/register",
 ]
 
+// Static / SEO / verification assets that must NEVER be intercepted by auth.
+// These are served directly from /public and must return 200 with no redirect.
+const PUBLIC_ASSETS = [
+  "/robots.txt",
+  "/sitemap.xml",
+  "/favicon.ico",
+  "/manifest.webmanifest",
+  "/google465111a5cdd76198.html",
+]
+
 const ADMIN_PREFIX = "/dashboard"
 
 function decodeSession(token: string | undefined): { role: Role } | null {
@@ -30,8 +40,29 @@ function decodeSession(token: string | undefined): { role: Role } | null {
   }
 }
 
+function isPublicAsset(pathname: string): boolean {
+  if (PUBLIC_ASSETS.includes(pathname)) return true
+  // Google Search Console HTML verification files: /google*.html
+  if (/^\/google[a-zA-Z0-9]+\.html$/.test(pathname)) return true
+  // Static directories served from /public
+  if (
+    pathname.startsWith("/images/") ||
+    pathname.startsWith("/icons/") ||
+    pathname.startsWith("/fonts/")
+  ) {
+    return true
+  }
+  return false
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Bypass all authentication/redirects for static, SEO and verification files.
+  if (isPublicAsset(pathname)) {
+    return NextResponse.next()
+  }
+
   const session = decodeSession(request.cookies.get("session")?.value)
 
   const isPublic = PUBLIC_PATHS.some(
@@ -57,5 +88,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|google[a-zA-Z0-9]+\\.html|images/|icons/|fonts/).*)",
+  ],
 }
+
