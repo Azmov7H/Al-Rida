@@ -32,6 +32,10 @@ export async function createProductAction(formData: FormData) {
       .map((t) => t.trim())
       .filter(Boolean) ?? [],
     status: formData.get("status") || "draft",
+    images: JSON.parse((formData.get("images") as string) || "[]") as {
+      url: string
+      alt: string
+    }[],
   }
 
   const parsed = productCreateSchema.safeParse({
@@ -48,6 +52,7 @@ export async function createProductAction(formData: FormData) {
   try {
     await productRepository.create({
       ...parsed.data,
+      images: raw.images,
       brand: new mongoose.Types.ObjectId(parsed.data.brandId),
       category: new mongoose.Types.ObjectId(parsed.data.categoryId),
     })
@@ -82,6 +87,10 @@ export async function updateProductAction(id: string, formData: FormData) {
       .map((t) => t.trim())
       .filter(Boolean) ?? [],
     status: formData.get("status") || "draft",
+    images: JSON.parse((formData.get("images") as string) || "[]") as {
+      url: string
+      alt: string
+    }[],
   }
 
   const parsed = productCreateSchema.safeParse({
@@ -98,6 +107,7 @@ export async function updateProductAction(id: string, formData: FormData) {
   try {
     await productRepository.update(id, {
       ...parsed.data,
+      images: raw.images,
       brand: new mongoose.Types.ObjectId(parsed.data.brandId),
       category: new mongoose.Types.ObjectId(parsed.data.categoryId),
     })
