@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { createSession } from "@/lib/auth/session"
 import { authService } from "@/services/auth.service"
+import { logActivity } from "@/lib/activity"
 import { loginSchema, registerSchema } from "@/validators/auth"
 
 export async function loginAction(formData: FormData) {
@@ -48,6 +49,14 @@ export async function registerAction(formData: FormData) {
       email: user.email,
       name: user.name,
       role: user.role,
+    })
+    void logActivity({
+      actor: name,
+      actorRole: "customer",
+      action: "user.registered",
+      entity: "user",
+      entityId: user._id.toString(),
+      message: `انضم مستخدم جديد: ${name} (${email})`,
     })
   } catch {
     redirect("/register?error=exists")

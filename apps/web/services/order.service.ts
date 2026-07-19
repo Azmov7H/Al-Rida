@@ -1,6 +1,7 @@
 import { orderRepository } from "@/repositories/order.repository"
 import { productRepository } from "@/repositories/product.repository"
 import { userRepository } from "@/repositories/user.repository"
+import { logActivity } from "@/lib/activity"
 import type { CheckoutInput } from "@/validators/order"
 import type { IAddress } from "@/models/address"
 import type { IProduct } from "@/models/product"
@@ -60,6 +61,15 @@ export const orderService = {
     for (const line of input.items) {
       await productRepository.decrementStock(line.productId, line.quantity)
     }
+
+    void logActivity({
+      actor: userId,
+      actorRole: "customer",
+      action: "order.created",
+      entity: "order",
+      entityId: order._id?.toString(),
+      message: `طلب جديد رقم ${order.orderNumber} بقيمة ${order.total}`,
+    })
 
     return order
   },
@@ -160,6 +170,15 @@ export const orderService = {
     for (const line of input.items) {
       await productRepository.decrementStock(line.productId, line.quantity)
     }
+
+    void logActivity({
+      actor: user.email,
+      actorRole: "customer",
+      action: "order.created",
+      entity: "order",
+      entityId: order._id?.toString(),
+      message: `طلب جديد (زائر) رقم ${order.orderNumber} بقيمة ${order.total}`,
+    })
 
     return order
   },
