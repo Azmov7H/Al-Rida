@@ -4,7 +4,9 @@ import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import mongoose from "mongoose"
 import { requireRole } from "@/lib/auth/guard"
+import { getSession } from "@/lib/auth/session"
 import { productRepository } from "@/repositories/product.repository"
+import { logActivity } from "@/lib/activity"
 import { productCreateSchema } from "@/validators/product"
 import { slugify } from "@/lib/utils"
 
@@ -50,11 +52,20 @@ export async function createProductAction(formData: FormData) {
   }
 
   try {
-    await productRepository.create({
+    const created = await productRepository.create({
       ...parsed.data,
       images: raw.images,
       brand: new mongoose.Types.ObjectId(parsed.data.brandId),
       category: new mongoose.Types.ObjectId(parsed.data.categoryId),
+    })
+    const session = await getSession()
+    void logActivity({
+      actor: session?.name ?? "مشرف",
+      actorRole: session?.role ?? "manager",
+      action: "product.created",
+      entity: "product",
+      entityId: created._id?.toString(),
+      message: `تمت إضافة منتج: ${parsed.data.name}`,
     })
     revalidatePath("/dashboard/products")
   } catch {

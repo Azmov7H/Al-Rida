@@ -3,7 +3,9 @@
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth/guard"
+import { getSession } from "@/lib/auth/session"
 import { couponRepository } from "@/repositories/coupon.repository"
+import { logActivity } from "@/lib/activity"
 
 export async function createCouponAction(formData: FormData) {
   const guard = await requireRole("manager")
@@ -21,7 +23,7 @@ export async function createCouponAction(formData: FormData) {
   }
 
   try {
-    await couponRepository.create({
+    const created = await couponRepository.create({
       code,
       type,
       value,
@@ -29,6 +31,15 @@ export async function createCouponAction(formData: FormData) {
       maxUses,
       expiresAt,
       active: true,
+    })
+    const session = await getSession()
+    void logActivity({
+      actor: session?.name ?? "مشرف",
+      actorRole: session?.role ?? "manager",
+      action: "coupon.created",
+      entity: "coupon",
+      entityId: created._id?.toString(),
+      message: `تم إنشاء كوبون: ${code}`,
     })
     revalidatePath("/dashboard/marketing/coupons")
   } catch {

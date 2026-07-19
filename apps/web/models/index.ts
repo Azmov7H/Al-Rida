@@ -9,5 +9,6 @@ import "./wishlist"
 import "./review"
 import "./coupon"
 import "./content"
+import "./activity"
 
 export {}
