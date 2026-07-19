@@ -1,41 +1,52 @@
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
-import { trustIndicators } from "@/lib/landing-data"
+import { getContent } from "@/services/content.service"
 import { images } from "@/lib/images"
 
-export function Hero() {
+export async function Hero() {
+  const c = await getContent("hero")
+  const badge = (c.badge as string) ?? "موزع معتمد للأقفال والأوكر"
+  const title = (c.title as string) ?? "حلول متكاملة للأقفال والأوكر وإكسسوارات الأبواب"
+  const subtitle =
+    (c.subtitle as string) ??
+    "شركة الرضا تقدم منتجات أصلية عالية الجودة من أفضل العلامات التجارية لتلبية احتياجات المنازل، الشركات، المشروعات، والمقاولين."
+  const primaryCta = (c.primaryCta as string) ?? "تصفح المنتجات"
+  const primaryCtaHref = (c.primaryCtaHref as string) ?? "/products"
+  const secondaryCta = (c.secondaryCta as string) ?? "تواصل معنا"
+  const secondaryCtaHref = (c.secondaryCtaHref as string) ?? "/contact"
+  const trust = ((c.trust as string[]) ?? ["منتجات أصلية", "موزع معتمد", "ضمان الجودة", "دعم فني"])
+
   return (
     <section className="w-full bg-[#F8FAFC]">
       <div className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 py-16 md:px-10 md:py-20 lg:grid-cols-2 lg:px-20">
         <div className="flex flex-col gap-6">
           <span className="w-fit rounded-full bg-[#0F3B73]/10 px-4 py-1.5 text-sm font-semibold text-[#0F3B73]">
-            موزع معتمد للأقفال والأوكر
+            {badge}
           </span>
           <h1 className="text-4xl font-bold leading-tight text-[#1E293B] md:text-5xl lg:text-6xl">
-            حلول متكاملة للأقفال والأوكر وإكسسوارات الأبواب
+            {title}
           </h1>
           <p className="max-w-md text-lg leading-relaxed text-[#64748B]">
-            شركة الرضا تقدم منتجات أصلية عالية الجودة من أفضل العلامات التجارية
-            لتلبية احتياجات المنازل، الشركات، المشروعات، والمقاولين.
+            {subtitle}
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/products"
+              href={primaryCtaHref}
               className="inline-flex h-12 items-center justify-center rounded-lg bg-[#0F3B73] px-7 text-base font-semibold text-white transition-colors hover:bg-[#0C2F5C]"
             >
-              تصفح المنتجات
+              {primaryCta}
             </Link>
             <Link
-              href="/contact"
+              href={secondaryCtaHref}
               className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-[#E2E8F0] bg-transparent px-7 text-base font-semibold text-[#1E293B] transition-colors hover:bg-[#F1F5F9]"
             >
-              تواصل معنا
+              {secondaryCta}
               <ArrowLeft className="size-4" />
             </Link>
           </div>
           <ul className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {trustIndicators.map((item) => (
+            {trust.map((item) => (
               <li
                 key={item}
                 className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-center text-xs font-medium text-[#1E293B]"

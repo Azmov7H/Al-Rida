@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { statistics } from "@/lib/landing-data"
 
 function useCountUp(target: number) {
   const [value, setValue] = React.useState(0)
@@ -46,7 +45,11 @@ function Counter({ value, suffix, label }: { value: number; suffix: string; labe
   )
 }
 
-export function CompanyNumbers() {
+export function StatCounters({
+  statistics,
+}: {
+  statistics: { label: string; value: number; suffix: string }[]
+}) {
   return (
     <section className="w-full bg-[#0F3B73] py-16 text-white md:py-20">
       <div className="mx-auto grid max-w-[1440px] grid-cols-2 gap-8 px-5 md:grid-cols-3 md:px-10 lg:grid-cols-5 lg:px-20">
