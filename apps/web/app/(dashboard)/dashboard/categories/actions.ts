@@ -15,6 +15,7 @@ export async function createCategoryAction(formData: FormData) {
   const payload: Record<string, unknown> = {
     name,
     slug: (formData.get("slug") as string) || slugify(name),
+    code: (formData.get("code") as string) || undefined,
     image: (formData.get("image") as string) || undefined,
   }
   const parent = formData.get("parent") as string
