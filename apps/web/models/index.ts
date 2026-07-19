@@ -8,5 +8,6 @@ import "./cart"
 import "./wishlist"
 import "./review"
 import "./coupon"
+import "./content"
 
 export {}
