@@ -22,7 +22,7 @@ export async function createCouponAction(formData: FormData) {
   const guard = await requireRole("manager")
   if ("response" in guard) redirect("/dashboard/marketing/coupons")
 
-  const rl = rateLimit(rateLimitKey("coupon", await clientIp()), 10, 60_000)
+  const rl = await rateLimit(rateLimitKey("coupon", await clientIp()), 10, 60_000)
   if (!rl.success) {
     redirect("/dashboard/marketing/coupons?error=ratelimit")
   }

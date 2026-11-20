@@ -9,7 +9,7 @@ import { audit } from "@/lib/audit"
 import { logger } from "@/lib/logger"
 
 async function handler(request: Request) {
-  const rl = rateLimit(clientKey("api-login", request), 5, 15_000)
+  const rl = await rateLimit(clientKey("api-login", request), 5, 15_000)
   if (!rl.success) {
     return unauthorized("Too many attempts.")
   }
@@ -22,6 +22,10 @@ async function handler(request: Request) {
     const parsed = loginSchema.safeParse(body)
     if (!parsed.success) {
       return badRequest(parsed.error.flatten())
+    }
+    if (await authService.isLocked(parsed.data.email)) {
+      logger.warn("login_locked", { email: parsed.data.email })
+      return unauthorized("Account locked. Try again later.")
     }
     const user = await authService.verifyCredentials(parsed.data)
     if (!user) {

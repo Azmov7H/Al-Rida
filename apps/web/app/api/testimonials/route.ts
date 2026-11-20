@@ -5,7 +5,7 @@ import { connectDB } from "@/lib/db"
 
 /** Public: published + verified testimonials (safe projection). */
 export async function GET(request: Request) {
-  const rl = rateLimit(clientKey("testimonials", request), 10, 60_000)
+  const rl = await rateLimit(clientKey("testimonials", request), 10, 60_000)
   if (!rl.success) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }

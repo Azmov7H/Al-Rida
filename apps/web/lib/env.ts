@@ -14,3 +14,17 @@ export const env = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   isProduction: process.env.NODE_ENV === "production",
 } as const
+
+function requiredProduction(name: string, minLength = 16): string {
+  const value = required(name)
+  if (process.env.NODE_ENV === "production" && value.length < minLength) {
+    throw new Error(`Required env var ${name} must be at least ${minLength} chars in production.`)
+  }
+  return value
+}
+
+export const envProduction = {
+  // STRONG production secrets: fail fast on missing/short values (P5).
+  jwtSecret: requiredProduction("JWT_SECRET", 32),
+  mongoUri: requiredProduction("MONGODB_URI", 10),
+} as const

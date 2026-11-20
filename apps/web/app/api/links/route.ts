@@ -5,7 +5,7 @@ import { connectDB } from "@/lib/db"
 
 /** Public: landing action links (enabled, sorted). */
 export async function GET(request: Request) {
-  const rl = rateLimit(clientKey("links", request), 10, 60_000)
+  const rl = await rateLimit(clientKey("links", request), 10, 60_000)
   if (!rl.success) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }

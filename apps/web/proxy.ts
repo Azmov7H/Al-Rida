@@ -2,28 +2,12 @@ import { NextResponse, type NextRequest } from "next/server"
 import jwt from "jsonwebtoken"
 import { hasRole, type Role } from "@/constants/roles"
 import { logger } from "@/lib/logger"
+import { audit } from "@/lib/audit"
 
 const SECRET = process.env.JWT_SECRET ?? "change-me"
 
-// --- Security headers applied to every proxied response ---
-const SECURITY_HEADERS: Record<string, string> = {
-  "Content-Security-Policy": [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https://images.unsplash.com https://res.cloudinary.com",
-    "font-src 'self' data:",
-    "connect-src 'self'",
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-  ].join("; "),
-  "X-Frame-Options": "DENY",
-  "Referrer-Policy": "strict-origin-when-cross-origin",
-  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-  "Permissions-Policy": "camera=(), geolocation=(), microphone=(), payment=(self)",
-  "X-Content-Type-Options": "nosniff",
-}
+// NOTE: Security headers (CSP, X-Frame-Options, HSTS, etc.) are applied globally via
+// `next.config.ts headers()` — single source of truth (deduped from this file, P5).
 
 // --- Route protection map ---
 const PUBLIC_PATHS = [
@@ -40,6 +24,8 @@ const PUBLIC_PATHS = [
   "/api/company",
   "/api/links",
   "/api/testimonials",
+  // CSRF-token issuance endpoint (public, tiny)
+  "/api/auth/csrf-token",
 ]
 
 // Paths that require a staff (manager/admin) session.
@@ -75,13 +61,6 @@ function isPublicAsset(pathname: string): boolean {
   )
 }
 
-function withSecurityHeaders(response: NextResponse): NextResponse {
-  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
-    response.headers.set(key, value)
-  }
-  return response
-}
-
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -96,7 +75,7 @@ export function proxy(request: NextRequest) {
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   )
   if (isPublic) {
-    return withSecurityHeaders(NextResponse.next())
+    return NextResponse.next()
   }
 
   // Unauthenticated → login (preserve intended destination).
@@ -105,16 +84,20 @@ export function proxy(request: NextRequest) {
     url.pathname = "/login"
     url.searchParams.set("redirect", pathname)
     logger.warn("auth_required_redirect", { pathname })
-    return withSecurityHeaders(NextResponse.redirect(url))
+    return NextResponse.redirect(url)
   }
 
   // Staff-only area.
   if (pathname.startsWith(STAFF_PREFIX) && !hasRole(session.role, "manager")) {
     logger.warn("forbidden_staff_area", { pathname, role: session.role })
-    return withSecurityHeaders(NextResponse.redirect(new URL("/unauthorized", request.url)))
+    void audit({
+      action: "auth_forbidden",
+      metadata: { pathname, role: session.role },
+    })
+    return NextResponse.redirect(new URL("/unauthorized", request.url))
   }
 
-  return withSecurityHeaders(NextResponse.next())
+  return NextResponse.next()
 }
 
 export const config = {

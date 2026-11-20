@@ -21,7 +21,10 @@ export async function PATCH(request: Request) {
     const valid = await bcrypt.compare(parsed.data.currentPassword, user.passwordHash)
     if (!valid) return badRequest("Current password is incorrect.")
     const passwordHash = await bcrypt.hash(parsed.data.newPassword, 12)
-    await userRepository.update(guard.session.id, { passwordHash })
+    await userRepository.update(guard.session.id, {
+      passwordHash,
+      passwordChangedAt: new Date(),
+    })
     return ok(null, "Password updated.")
   } catch {
     return serverError()
