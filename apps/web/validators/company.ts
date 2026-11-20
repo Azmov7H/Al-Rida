@@ -1,5 +1,4 @@
 import { z } from "zod"
-import type { CompanyAddress } from "@/types/company"
 import { E164, httpsUrl, phoneDisplay } from "@/validators/shared"
 
 export { httpsUrl, E164, phoneDisplay }

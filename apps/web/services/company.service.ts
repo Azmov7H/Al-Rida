@@ -1,5 +1,6 @@
 import { companyRepository } from "@/repositories/company.repository"
 import { companySaveSchema } from "@/validators/company"
+import { connectDB } from "@/lib/db"
 import { validationError } from "@/lib/errors"
 import type { CompanyData } from "@/types/company"
 
@@ -41,6 +42,7 @@ export const companyService = {
    * Used by SSR (landing) + public API GET /api/company.
    */
   async getOrCreateDefault(seed?: Partial<CompanyData>): Promise<CompanyData> {
+    await connectDB()
     const existing = await companyRepository.getDefault()
     if (existing) return existing
     return companyRepository.createDefault({ ...SEED_DEFAULTS, ...seed })

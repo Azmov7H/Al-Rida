@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { DoorFrameIcon } from "@/components/icons/door-frame-icon"
 
 interface BrandHeaderProps {
@@ -27,10 +28,22 @@ export function BrandHeader({
           <h1 className="text-5xl font-bold leading-[1.15] text-ink md:text-6xl lg:text-7xl">
             {name}
           </h1>
-          <p className="inline-flex max-w-xl items-center gap-2 text-lg leading-relaxed text-muted">
-            <DoorFrameIcon className="size-5 shrink-0 text-primary" />
-            {description}
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="inline-flex max-w-xl items-center gap-2 text-lg leading-relaxed text-muted">
+              <DoorFrameIcon className="size-5 shrink-0 text-primary" />
+              {description}
+            </p>
+            {websiteUrl ? (
+              <Link
+                href={websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:underline"
+              >
+                موقع الشركة ←
+              </Link>
+            ) : null}
+          </div>
         </div>
 
         <div className="relative">

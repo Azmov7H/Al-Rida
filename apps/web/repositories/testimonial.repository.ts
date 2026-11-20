@@ -7,7 +7,7 @@ function generateTestimonialSlug(name: string): string {
   return `${slugify(name)}-${randomBytes(2).toString("hex")}`
 }
 
-export type PublicTestimonial = Omit<ITestimonial, "isPublished" | "isVerified" | "slug">
+export type PublicTestimonial = Omit<ITestimonial, "isPublished" | "isVerified">
 
 export interface TestimonialRepository {
   getAll(filter?: {

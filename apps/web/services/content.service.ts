@@ -1,26 +1,10 @@
 import { connectDB } from "@/lib/db"
 import { contentRepository } from "@/repositories/content.repository"
-import {
-  statistics,
-  trustIndicators,
-  footerColumns,
-  contactInfo,
-} from "@/lib/landing-data"
+import { statistics, contactInfo } from "@/lib/landing-data"
 
+/** Legacy FALLBACK — frozen sections for legacy pages (products removed in A6). */
 const FALLBACK: Record<string, Record<string, unknown>> = {
-  hero: {
-    badge: "موزع معتمد للأقفال والأوكر",
-    title: "حلول متكاملة للأقفال والأوكر وإكسسوارات الأبواب",
-    subtitle:
-      "شركة الرضا تقدم منتجات أصلية عالية الجودة من أفضل العلامات التجارية لتلبية احتياجات المنازل، الشركات، المشروعات، والمقاولين.",
-    primaryCta: "تصفح المنتجات",
-    primaryCtaHref: "/products",
-    secondaryCta: "تواصل معنا",
-    secondaryCtaHref: "/contact",
-  },
   statistics: { items: statistics },
-  trust: { items: trustIndicators },
-  footer: { columns: footerColumns, contact: contactInfo },
   company: {
     name: "شركة الرضا",
     email: contactInfo.email,

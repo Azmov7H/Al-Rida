@@ -1,26 +1,26 @@
 import type { Metadata } from "next"
 import { Navbar } from "@/components/landing/navbar"
 import { Footer } from "@/components/landing/footer"
-import { siteConfig } from "@/config/site"
 import { getSession } from "@/lib/auth/session"
-import { getContent } from "@/services/content.service"
+import { companyService } from "@/services/company.service"
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.name} — Premium Door Hardware`,
-    template: `%s · ${siteConfig.name}`,
+    default: "الرضا — منصة أوكر الأبواب والأقفال والكوالين",
+    template: "%s · الرضا",
   },
-  description: siteConfig.description,
+  description:
+    "خدمة الأبواب والأقفال والكوالين الأصلية — الرضا: منصة رقمية للأعمال اليدوية المحترفة.",
   openGraph: {
-    title: siteConfig.name,
-    description: siteConfig.description,
+    title: "الرضا — منصة أوكر الأبواب والأقفال والكوالين",
+    description: "خدمة الأبواب والأقفال والكوالين الأصلية — الرضا: منصة رقمية للأعمال اليدوية المحترفة.",
     type: "website",
-    locale: "en_US",
+    locale: "ar_EG",
   },
   twitter: {
     card: "summary_large_image",
-    title: siteConfig.name,
-    description: siteConfig.description,
+    title: "الرضا",
+    description: "خدمة الأبواب والأقفال الأصلية — الرضا: منصة رقمية للأعمال اليدوية المحترفة.",
   },
 }
 
@@ -29,8 +29,8 @@ export default async function MarketingLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [session, company] = await Promise.all([getSession(), getContent("company")])
-  const brand = (company.name as string) ?? "الرضا"
+  const [session, company] = await Promise.all([getSession(), companyService.getDefault()])
+  const brand = company.name
 
   return (
     <>

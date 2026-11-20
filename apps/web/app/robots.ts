@@ -15,9 +15,17 @@ export default function robots(): MetadataRoute.Robots {
           "/api/",
           "/login",
           "/register",
+          // Legacy e‑commerce routes — removed in P3 (A6)
+          "/products",
           "/checkout",
           "/cart",
+          "/wishlist",
+          "/orders",
+          "/search",
+          // Authenticated-only (A7 frozen)
           "/profile",
+          "/dashboard/profile",
+          "/dashboard/orders",
         ],
       },
     ],
