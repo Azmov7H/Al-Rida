@@ -1,8 +1,5 @@
 import type { Metadata } from "next"
-import { Navbar } from "@/components/landing/navbar"
-import { Footer } from "@/components/landing/footer"
-import { getSession } from "@/lib/auth/session"
-import { companyService } from "@/services/company.service"
+
 
 export const metadata: Metadata = {
   title: {
@@ -29,17 +26,13 @@ export default async function MarketingLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [session, company] = await Promise.all([getSession(), companyService.getDefault()])
-  const brand = company.name
+ 
 
   return (
     <>
-      <Navbar
-        session={session ? { role: session.role, name: session.name } : null}
-        brand={brand}
-      />
+
       {children}
-      <Footer />
+
     </>
   )
 }

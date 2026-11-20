@@ -2,6 +2,8 @@ import "@workspace/ui/globals.css"
 import { Cairo, Inter, JetBrains_Mono, Readex_Pro } from "next/font/google"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
+import { brandSettingsRepository } from "@/repositories/brand-settings.repository"
+import type { CSSProperties } from "react"
 
 const cairoFont = Cairo({
   subsets: ["arabic", "latin"],
@@ -27,11 +29,18 @@ const jetbrainsFont = JetBrains_Mono({
   weight: ["400", "500", "700"],
 })
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const brand = await brandSettingsRepository.getOrCreateDefault()
+
+  const fontStyle: CSSProperties | undefined =
+    brand.primaryArabicFont === "readexPro"
+      ? ({ "--font-arabic": "var(--font-readex)" } as CSSProperties)
+      : undefined
+
   return (
     <html
       lang="ar"
@@ -44,7 +53,7 @@ export default function RootLayout({
       )}
       suppressHydrationWarning
     >
-      <body className="bg-bg text-ink antialiased">
+      <body className="bg-bg text-ink antialiased" style={fontStyle}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

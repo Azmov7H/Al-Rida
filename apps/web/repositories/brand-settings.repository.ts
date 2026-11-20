@@ -1,3 +1,4 @@
+import { connectDB } from "@/lib/db"
 import { BrandSettings } from "@/models/brand-settings"
 import type { IBrandSettings } from "@/models/brand-settings"
 
@@ -9,16 +10,19 @@ export interface BrandSettingsRepository {
 
 export const brandSettingsRepository: BrandSettingsRepository = {
   async getDefault() {
+    await connectDB()
     return (await BrandSettings.findOne({ slug: "default" }).lean()) ?? null
   },
 
   async getOrCreateDefault() {
+    await connectDB()
     const existing = await this.getDefault()
     if (existing) return existing
     return BrandSettings.create({ slug: "default" }) as Promise<IBrandSettings>
   },
 
   async upsertDefault(data: Partial<IBrandSettings>) {
+    await connectDB()
     await BrandSettings.updateOne({ slug: "default" }, { $set: data }, { upsert: true })
   },
 }

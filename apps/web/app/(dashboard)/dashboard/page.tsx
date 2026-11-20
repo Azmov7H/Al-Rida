@@ -17,6 +17,10 @@ import { formatCurrency } from "@/lib/utils"
 import { productRepository } from "@/repositories/product.repository"
 import { orderRepository } from "@/repositories/order.repository"
 import { connectDB } from "@/lib/db"
+import { companyService } from "@/services/company.service"
+import { linkRepository } from "@/repositories/link.repository"
+import { testimonialRepository } from "@/repositories/testimonial.repository"
+import { House, Star, Link2 } from "lucide-react"
 import type { IProduct } from "@/models/product"
 import type { IOrder } from "@/models/order"
 
@@ -35,11 +39,14 @@ const ORDER_STATUS_TONE: Record<string, "gray" | "blue" | "green" | "orange" | "
 async function loadHome() {
   try {
     await connectDB()
-    const [products, orders, lowStock, recentOrders] = await Promise.all([
+    const [products, orders, lowStock, recentOrders, allLinks, unpublishedTestimonials, company] = await Promise.all([
       productRepository.list({}, 1, 1),
       orderRepository.listForAdmin(1, 1),
       productRepository.list({ stock: { $lte: 5 } }, 1, 5),
       orderRepository.listForAdmin(1, 6),
+      linkRepository.list(),
+      testimonialRepository.countUnpublished(),
+      companyService.getDefault(),
     ])
     return {
       totals: {
@@ -52,6 +59,10 @@ async function loadHome() {
       },
       lowStock: lowStock.items as IProduct[],
       recentOrders: (recentOrders.items as IOrder[]).slice(0, 5),
+      linksCount: allLinks.length,
+      activeLinks: allLinks.filter((l) => l.enabled).length,
+      unpublishedTestimonials,
+      companyName: company.name,
     }
   } catch {
     return {
@@ -65,6 +76,10 @@ async function loadHome() {
       },
       lowStock: [] as IProduct[],
       recentOrders: [] as IOrder[],
+      linksCount: 0,
+      activeLinks: 0,
+      unpublishedTestimonials: 0,
+      companyName: "الرضا",
     }
   }
 }
@@ -73,6 +88,7 @@ const SPARK = [40, 55, 48, 70, 62, 85, 78, 95, 88, 100, 92, 110]
 
 export default async function DashboardHomePage() {
   const data = await loadHome()
+  const { linksCount, activeLinks, unpublishedTestimonials } = data
 
   return (
     <div className="space-y-6">
@@ -90,6 +106,24 @@ export default async function DashboardHomePage() {
         <StatCard label="منتجات منخفضة المخزون" value={data.totals.lowStock} icon={AlertTriangle} accent="red" />
         <StatCard label="عملاء جدد" value={data.totals.customers} icon={UserPlus} accent="blue" />
       </div>
+
+      {/* ── خدمة الشركة (P4) ── */}
+      <section className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-ink">خدمة الشركة</h2>
+            <p className="text-sm text-muted">إدارة الروابط والتقييمات والعنوان على الصفحة الرئيسية</p>
+          </div>
+          <Link href="/dashboard/company" className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:underline">
+            معلومات الشركة ←
+          </Link>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <StatCard label="الروابط" value={linksCount} icon={Link2} />
+          <StatCard label="آراء العملاء" value={unpublishedTestimonials} icon={Star} />
+          <StatCard label="الروابط المفعّلة" value={activeLinks} icon={House} />
+        </div>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm lg:col-span-2">
