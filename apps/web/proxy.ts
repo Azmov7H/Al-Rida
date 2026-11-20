@@ -28,8 +28,6 @@ const SECURITY_HEADERS: Record<string, string> = {
 // --- Route protection map ---
 const PUBLIC_PATHS = [
   "/",
-  "/shop",
-  "/products",
   "/categories",
   "/brands",
   "/about",

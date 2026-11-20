@@ -1,10 +1,11 @@
 import type { Metadata } from "next"
-import { whyUs, statistics, contactInfo } from "@/lib/landing-data"
+import { statistics, contactInfo } from "@/lib/landing-data"
+import { TrustTiles } from "@/components/landing/trust-tiles"
 
 export const metadata: Metadata = {
   title: "من نحن",
   description:
-    "الرضا لتجارة أدوات الأبواب والآقفال — موزع معتمد لعلامات عالمية ومحلية بخبرة تمتد لعقود في السوق المصري.",
+    "الرضا لتجارة أدوات الأبواب — موزع معتمد لأوكر الأبواب والأقفال والكوالين، حلول أصلية عالي الجودة في السوق المصري.",
 }
 
 export default function AboutPage() {
@@ -34,24 +35,7 @@ export default function AboutPage() {
       </section>
 
       <section className="mb-12">
-        <h2 className="mb-6 text-2xl font-bold text-[#1E293B]">لماذا تختار الرضا</h2>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {whyUs.map((w) => {
-            const Icon = w.icon
-            return (
-              <div
-                key={w.title}
-                className="flex flex-col gap-3 rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm"
-              >
-                <span className="inline-flex size-11 items-center justify-center rounded-xl bg-[#0F3B73]/10 text-[#0F3B73]">
-                  <Icon className="size-6" />
-                </span>
-                <h3 className="text-lg font-semibold text-[#1E293B]">{w.title}</h3>
-                <p className="text-sm text-[#64748B]">{w.description}</p>
-              </div>
-            )
-          })}
-        </div>
+        <TrustTiles />
       </section>
 
       <section className="rounded-2xl bg-[#0F3B73] p-8 text-center text-white">

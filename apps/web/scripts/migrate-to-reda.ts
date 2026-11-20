@@ -57,16 +57,16 @@ const LEGACY_TESTIMONIALS = [
   },
 ]
 
-/** Footer links from old FALLBACK.footer.columns (compiled: title, links). */
+/** Footer links — legacy map + removals (A6): e‑commerce pages → "/" (new landing). */
 const LEGACY_FOOTER_LINKS: Record<string, string> = {
   من_نحن: "/about",
   المشاريع: "/projects",
   العروض: "/offers",
   اتصل_بنا: "/contact",
-  الأقفال: "/products",
-  الأوكر: "/products",
-  المفصلات: "/products",
-  الأقفال_الذكية: "/products",
+  الأقفال: "/",
+  الأوكر: "/",
+  المفصلات: "/",
+  الأقفال_الذكية: "/",
   Al_Ahram: "/brands",
   Yale: "/brands",
   Kale: "/brands",

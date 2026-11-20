@@ -1,73 +1,52 @@
-import { Hero } from "@/components/landing/hero"
-import { Brands } from "@/components/landing/brands"
-import { Categories } from "@/components/landing/categories"
-import { FeaturedProducts } from "@/components/landing/featured-products"
-import { WhyUs } from "@/components/landing/why-us"
-import { CompanyNumbers } from "@/components/landing/company-numbers.server"
-import { Projects } from "@/components/landing/projects"
+import { DoorAnimation } from "@/components/landing/door-animation"
+import { BrandHeader } from "@/components/landing/brand-header"
+import { ActionsCards } from "@/components/landing/actions-cards"
 import { Testimonials } from "@/components/landing/testimonials"
-import { Cta } from "@/components/landing/cta"
-import { productService } from "@/services/product.service"
-import { productQuerySchema } from "@/validators/product"
-
-type LandingFeaturedProduct = {
-  name: string
-  brand: string
-  sku: string
-  availability: string
-  spec: string
-  image: string
-  href: string
-  salePrice: number | null
-}
+import { TrustTiles } from "@/components/landing/trust-tiles"
+import { ContactTiles } from "@/components/landing/contact-tiles"
+import { Footer } from "@/components/landing/footer"
+import { connectDB } from "@/lib/db"
+import { companyService } from "@/services/company.service"
+import { linkRepository } from "@/repositories/link.repository"
+import { testimonialRepository } from "@/repositories/testimonial.repository"
 
 export const dynamic = "force-dynamic"
 
 export default async function LandingPage() {
-  let featuredProducts: LandingFeaturedProduct[] = []
+  await connectDB()
+  const [company, links, testimonials] = await Promise.all([
+    companyService.getDefault(),
+    linkRepository.listBySectionEnabled("main_actions"),
+    testimonialRepository.getPublishedVerified(),
+  ])
 
-  try {
-    const result = await productService.getProductPage(
-      productQuerySchema.parse({ page: 1, limit: 4, inStock: true }),
-    )
-
-    featuredProducts = result.items.map((product) => {
-      const brandName =
-        typeof product.brand === "string"
-          ? product.brand
-          : (product.brand as { name?: string } | null)?.name ?? "الرضا"
-      const categoryName =
-        typeof product.category === "string"
-          ? product.category
-          : ((product.category as { name?: string } | null)?.name ?? product.material) ||
-            "منتج مميز"
-
-      return {
-        name: product.name,
-        brand: brandName,
-        sku: product.sku,
-        availability: product.stock > 0 ? "متوفر" : "غير متوفر",
-        spec: categoryName,
-        image: product.images?.[0]?.url ?? "",
-        href: `/products/${product.slug}`,
-        salePrice: product.salePrice ?? null,
-      }
-    })
-  } catch {
-    featuredProducts = []
+  const walletDetails = {
+    number: company.cashWalletNumber,
+    label: company.cashWalletLabel,
+    instructions: company.cashWalletInstructions,
   }
 
   return (
-    <main>
-      <Hero />
-      <Brands />
-      <Categories />
-      <FeaturedProducts products={featuredProducts} />
-      <WhyUs />
-      <CompanyNumbers />
-      <Projects />
-      <Testimonials />
-      <Cta />
-    </main>
+    <DoorAnimation>
+      <main className="flex flex-col gap-12 md:gap-16">
+        <BrandHeader
+          tagline="حلول مثلية لأوكر الأبواب والأقفال"
+          name="الرضا"
+          description={company.description}
+          websiteUrl={company.websiteUrl}
+          coverImageUrl={company.coverImageUrl}
+        />
+        <ActionsCards
+          links={links}
+          whatsAppNumber={company.whatsappNumber}
+          whatsAppPreMessage={company.whatsappPreMessage}
+          walletDetails={walletDetails}
+        />
+        <Testimonials testimonials={testimonials} />
+        <TrustTiles />
+        <ContactTiles company={company} />
+      </main>
+      <Footer />
+    </DoorAnimation>
   )
 }

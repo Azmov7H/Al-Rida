@@ -6,7 +6,7 @@ export function slugify(input: string): string {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\u0600-\u06FF\u0020-\u007E]/g, "-") // keep arabic + ascii
-    .replace(/[\s\-]+/g, "-")
+    .replace(/[\s-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60) || "link"
 }
