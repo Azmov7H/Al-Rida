@@ -22,6 +22,7 @@ export const productService = {
       filter,
       query.page,
       query.limit,
+      sort,
     )
     return { items, total, page, limit, sort }
   },

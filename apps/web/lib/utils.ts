@@ -3,12 +3,24 @@ export function cn(...inputs: Array<string | false | null | undefined>): string 
 }
 
 export function slugify(input: string): string {
-  return input
+  const base = input
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/[ًَُِّْـ]/g, "") // Arabic diacritics + tatweel
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
+    .replace(/[^\p{L}\p{N}-]/gu, "") // keep letters (incl. Arabic) + numbers + dashes
+  const clean = base.replace(/^-+|-+$/g, "")
+  if (clean.length < 2) {
+    return `item-${Math.random().toString(36).slice(2, 8)}`
+  }
+  return clean
+}
+
+export function generateSku(prefix = "PRD"): string {
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase()
+  const time = Date.now().toString(36).slice(-4).toUpperCase()
+  return `${prefix}-${time}${rand}`
 }
 
 export function formatCurrency(amount: number, currency = "EGP"): string {

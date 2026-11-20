@@ -7,6 +7,11 @@ export const userRepository = {
     return User.findOne({ email }).lean()
   },
 
+  async list(page = 1, limit = 50): Promise<IUser[]> {
+    await connectDB()
+    return User.find().sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean()
+  },
+
   async findById(id: string): Promise<IUser | null> {
     await connectDB()
     return User.findById(id).lean()
@@ -15,5 +20,25 @@ export const userRepository = {
   async create(data: Partial<IUser>): Promise<IUser> {
     await connectDB()
     return User.create(data)
+  },
+
+  async findOrCreateGuest(
+    email: string,
+    name: string,
+  ): Promise<IUser> {
+    await connectDB()
+    const existing = await User.findOne({ email }).lean()
+    if (existing) return existing
+    return User.create({ email, name, passwordHash: "", role: "customer" })
+  },
+
+  async update(id: string, data: Partial<IUser>): Promise<IUser | null> {
+    await connectDB()
+    return User.findByIdAndUpdate(id, data, { new: true }).lean()
+  },
+
+  async remove(id: string): Promise<void> {
+    await connectDB()
+    await User.findByIdAndDelete(id)
   },
 }

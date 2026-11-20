@@ -9,14 +9,29 @@ export const productRepository = {
 
   async findBySlug(slug: string): Promise<IProduct | null> {
     await connectDB()
-    return Product.findOne({ slug }).lean()
+    return Product.findOne({ slug })
+      .populate("brand", "name slug")
+      .populate("category", "name slug")
+      .populate("relatedProducts", "name slug price salePrice stock images brand")
+      .lean()
   },
 
-  async list(query: Record<string, unknown> = {}, page = 1, limit = 24) {
+  async list(
+    query: Record<string, unknown> = {},
+    page = 1,
+    limit = 24,
+    sort: Record<string, 1 | -1> = { createdAt: -1 },
+  ) {
     await connectDB()
     const skip = (page - 1) * limit
     const [items, total] = await Promise.all([
-      Product.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Product.find(query)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .populate("brand", "name slug")
+        .populate("category", "name slug")
+        .lean(),
       Product.countDocuments(query),
     ])
     return { items, total, page, limit }
