@@ -1,6 +1,9 @@
 import { connectDB } from "@/lib/db"
 import { User, type IUser } from "@/models/user"
 
+const LOCKOUT_THRESHOLD = 5
+const LOCKOUT_DURATION_MS = 30 * 60 * 1000
+
 export const userRepository = {
   async findByEmail(email: string): Promise<IUser | null> {
     await connectDB()
@@ -40,5 +43,24 @@ export const userRepository = {
   async remove(id: string): Promise<void> {
     await connectDB()
     await User.findByIdAndDelete(id)
+  },
+
+  /** Record successful login: update lastLoginAt, reset failedAttempts. */
+  async markLoginSuccess(id: string): Promise<void> {
+    await connectDB()
+    await User.updateOne({ _id: id }, { $set: { lastLoginAt: new Date(), failedAttempts: 0 } })
+  },
+
+  /** Record failed login attempt. After LOCKOUT_THRESHOLD failures → lockoutUntil = +LOCKOUT_DURATION. */
+  async markLoginFailure(id: string): Promise<void> {
+    await connectDB()
+    const user = await User.findById(id)
+    if (!user) return
+    const attempts = (user.failedAttempts ?? 0) + 1
+    const update: Partial<IUser> = { failedAttempts: attempts }
+    if (attempts >= LOCKOUT_THRESHOLD) {
+      update.lockoutUntil = new Date(Date.now() + LOCKOUT_DURATION_MS)
+    }
+    await User.updateOne({ _id: id }, { $set: update })
   },
 }

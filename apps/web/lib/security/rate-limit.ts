@@ -1,19 +1,7 @@
+import { connectDB } from "@/lib/db"
+import { RateLimitBucket } from "@/models/rate-limit"
+import { audit } from "@/lib/audit"
 import { logger } from "@/lib/logger"
-
-interface Bucket {
-  count: number
-  resetAt: number
-}
-
-const store = new Map<string, Bucket>()
-
-const WINDOW_MS = 60_000
-
-function sweep(now: number) {
-  for (const [key, bucket] of store) {
-    if (bucket.resetAt <= now) store.delete(key)
-  }
-}
 
 export interface RateLimitResult {
   success: boolean
@@ -23,44 +11,47 @@ export interface RateLimitResult {
 }
 
 /**
- * In-memory sliding-fixed-window rate limiter.
- * No external dependency (Redis not in stack). Resets per server instance —
- * acceptable for single-instance deployments; swap for Redis on horizontal scale.
+ * Rate limiter — MongoDB-backed buckets (shared across instances; no new deps).
+ * Sliding-window with per-key buckets. Redis-backed upgrade path (documented
+ * in RISKS_AND_MIGRATION.md).
  */
-export function rateLimit(
+export async function rateLimit(
   key: string,
   limit: number,
-  windowMs: number = WINDOW_MS,
-): RateLimitResult {
+  windowMs: number = 60_000,
+): Promise<RateLimitResult> {
+  await connectDB()
   const now = Date.now()
-  sweep(now)
-
   const resetAt = now + windowMs
-  const existing = store.get(key)
 
-  if (!existing || existing.resetAt <= now) {
-    store.set(key, { count: 1, resetAt })
-    return { success: true, limit, remaining: limit - 1, retryAfter: 0 }
-  }
-
-  const bucket = existing
-  if (bucket.count >= limit) {
-    logger.warn("rate_limit_exceeded", { key, limit, windowMs })
+  const existing = await RateLimitBucket.findOne({ key })
+  if (existing) {
+    if (existing.resetAt <= now) {
+      // window expired — reset
+      await RateLimitBucket.updateOne({ key }, { $set: { resetAt, count: 1 } })
+      return { success: true, limit, remaining: limit - 1, retryAfter: 0 }
+    }
+    if (existing.count >= limit) {
+      logger.warn("rate_limit_exceeded", { key, limit, windowMs })
+      await audit({ action: "rate_limit_exceeded", metadata: { key, limit } })
+      return {
+        success: false,
+        limit,
+        remaining: 0,
+        retryAfter: Math.ceil((existing.resetAt - now) / 1000),
+      }
+    }
+    await RateLimitBucket.updateOne({ key }, { $inc: { count: 1 } })
     return {
-      success: false,
+      success: true,
       limit,
-      remaining: 0,
-      retryAfter: Math.ceil((bucket.resetAt - now) / 1000),
+      remaining: limit - existing.count - 1,
+      retryAfter: 0,
     }
   }
 
-  bucket.count += 1
-  return {
-    success: true,
-    limit,
-    remaining: limit - bucket.count,
-    retryAfter: 0,
-  }
+  await RateLimitBucket.create({ key, resetAt, count: 1 })
+  return { success: true, limit, remaining: limit - 1, retryAfter: 0 }
 }
 
 export function rateLimitKey(prefix: string, identifier: string): string {

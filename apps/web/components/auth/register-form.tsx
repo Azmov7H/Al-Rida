@@ -4,6 +4,7 @@ import * as React from "react"
 import { useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { registerAction } from "@/app/(marketing)/login/actions"
+import { CsrfToken } from "@/components/security/csrf-token"
 
 function Submit() {
   const { pending } = useFormStatus()
@@ -33,6 +34,7 @@ export function RegisterForm({
 
   return (
     <form action={registerAction} className="flex flex-col gap-4">
+      <CsrfToken />
       {error ? (
         <p className="rounded-lg bg-[#DC2626]/10 px-4 py-3 text-sm text-[#DC2626]">{error}</p>
       ) : null}

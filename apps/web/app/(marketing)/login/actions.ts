@@ -19,13 +19,14 @@ async function clientIp(): Promise<string> {
 
 export async function loginAction(formData: FormData) {
   const ip = await clientIp()
-  const rl = rateLimit(rateLimitKey("login", ip), 5, 15_000)
+  const rl = await rateLimit(rateLimitKey("login", ip), 5, 15_000)
   if (!rl.success) {
     redirect(`/login?error=ratelimit`)
   }
 
   if (!(await verifyCsrfForAction(formData))) {
     logger.warn("csrf_failure", { action: "loginAction" })
+    void audit({ action: "csrf_failure", metadata: { action: "loginAction" } })
     redirect(`/login?error=csrf`)
   }
 
@@ -36,6 +37,12 @@ export async function loginAction(formData: FormData) {
   })
   if (!parsed.success) {
     redirect(`/login?error=invalid&redirect=${encodeURIComponent(redirectTo)}`)
+  }
+
+  // Lockout — plan P5.3 (SECURITY_PLAN §2.3)
+  if (await authService.isLocked(parsed.data.email)) {
+    logger.warn("login_locked", { email: parsed.data.email })
+    redirect(`/login?error=locked&redirect=${encodeURIComponent(redirectTo)}`)
   }
 
   const user = await authService.verifyCredentials(parsed.data)
@@ -68,7 +75,7 @@ export async function loginAction(formData: FormData) {
 }
 
 export async function registerAction(formData: FormData) {
-  const rl = rateLimit(rateLimitKey("register", "global"), 5, 60_000)
+  const rl = await rateLimit(rateLimitKey("register", "global"), 5, 60_000)
   if (!rl.success) {
     redirect("/register?error=ratelimit")
   }

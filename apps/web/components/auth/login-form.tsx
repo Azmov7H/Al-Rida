@@ -4,6 +4,7 @@ import * as React from "react"
 import { useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { loginAction } from "@/app/(marketing)/login/actions"
+import { CsrfToken } from "@/components/security/csrf-token"
 
 function Submit() {
   const { pending } = useFormStatus()
@@ -28,10 +29,13 @@ export function LoginForm({
   const errorMap: Record<string, string> = {
     invalid: "بيانات غير صحيحة، تحقق من المدخلات.",
     credentials: "البريد أو كلمة المرور غير صحيحة.",
+    locked: "الحساب مقفل مؤقتاً — حاول لاحقاً.",
+    ratelimit: "طلبات كثيرة، حاول لاحقاً.",
   }
 
   return (
     <form action={loginAction} className="flex flex-col gap-4">
+      <CsrfToken />
       {params.redirect ? (
         <input type="hidden" name="redirect" value={params.redirect} />
       ) : null}

@@ -6,7 +6,7 @@ import { withErrorHandler } from "@/lib/errors"
 import { logger } from "@/lib/logger"
 
 async function handler(request: Request) {
-  const rl = rateLimit(clientKey("api-upload", request), 30, 60_000)
+  const rl = await rateLimit(clientKey("api-upload", request), 30, 60_000)
   if (!rl.success) {
     return badRequest("Too many uploads.")
   }

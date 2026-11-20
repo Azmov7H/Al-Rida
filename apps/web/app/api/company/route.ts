@@ -4,7 +4,7 @@ import { companyService } from "@/services/company.service"
 
 /** Public: company settings (all fields are public business data). */
 export async function GET(request: Request) {
-  const rl = rateLimit(clientKey("company", request), 10, 60_000)
+  const rl = await rateLimit(clientKey("company", request), 10, 60_000)
   if (!rl.success) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
