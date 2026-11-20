@@ -6,10 +6,18 @@ import mongoose from "mongoose"
 import { requireRole } from "@/lib/auth/guard"
 import { categoryRepository } from "@/repositories/category.repository"
 import { slugify } from "@/lib/utils"
+import { verifyCsrfForAction } from "@/lib/security/csrf"
+import { audit } from "@/lib/audit"
+import { logger } from "@/lib/logger"
 
 export async function createCategoryAction(formData: FormData) {
   const guard = await requireRole("manager")
   if ("response" in guard) redirect("/dashboard/categories")
+
+  if (!(await verifyCsrfForAction(formData))) {
+    logger.warn("csrf_failure", { action: "createCategoryAction" })
+    redirect("/dashboard/categories?error=csrf")
+  }
 
   const name = (formData.get("name") as string) || ""
   const payload: Record<string, unknown> = {
@@ -22,7 +30,13 @@ export async function createCategoryAction(formData: FormData) {
   if (parent) payload.parent = new mongoose.Types.ObjectId(parent)
 
   try {
-    await categoryRepository.create(payload)
+    const created = await categoryRepository.create(payload)
+    await audit({
+      actorRole: "manager",
+      action: "category.created",
+      target: "category",
+      targetId: created?._id?.toString(),
+    })
     revalidatePath("/dashboard/categories")
   } catch {
     redirect("/dashboard/categories?error=save")

@@ -6,10 +6,31 @@ import { requireRole } from "@/lib/auth/guard"
 import { getSession } from "@/lib/auth/session"
 import { couponRepository } from "@/repositories/coupon.repository"
 import { logActivity } from "@/lib/activity"
+import { verifyCsrfForAction } from "@/lib/security/csrf"
+import { rateLimit, rateLimitKey } from "@/lib/security/rate-limit"
+import { audit } from "@/lib/audit"
+import { logger } from "@/lib/logger"
+import { headers } from "next/headers"
+
+async function clientIp(): Promise<string> {
+  const h = await headers()
+  const fwd = h.get("x-forwarded-for")
+  return fwd?.split(",")[0]?.trim() ?? "unknown"
+}
 
 export async function createCouponAction(formData: FormData) {
   const guard = await requireRole("manager")
   if ("response" in guard) redirect("/dashboard/marketing/coupons")
+
+  const rl = rateLimit(rateLimitKey("coupon", await clientIp()), 10, 60_000)
+  if (!rl.success) {
+    redirect("/dashboard/marketing/coupons?error=ratelimit")
+  }
+
+  if (!(await verifyCsrfForAction(formData))) {
+    logger.warn("csrf_failure", { action: "createCouponAction" })
+    redirect("/dashboard/marketing/coupons?error=csrf")
+  }
 
   const code = ((formData.get("code") as string) || "").trim().toUpperCase()
   const type = (formData.get("type") as string) || "percentage"
@@ -41,6 +62,12 @@ export async function createCouponAction(formData: FormData) {
       entityId: created._id?.toString(),
       message: `تم إنشاء كوبون: ${code}`,
     })
+    await audit({
+      actorRole: session?.role ?? "manager",
+      action: "coupon.created",
+      target: "coupon",
+      targetId: created._id?.toString(),
+    })
     revalidatePath("/dashboard/marketing/coupons")
   } catch {
     redirect("/dashboard/marketing/coupons?error=save")
@@ -51,6 +78,11 @@ export async function createCouponAction(formData: FormData) {
 export async function toggleCouponAction(formData: FormData) {
   const guard = await requireRole("manager")
   if ("response" in guard) redirect("/dashboard/marketing/coupons")
+
+  if (!(await verifyCsrfForAction(formData))) {
+    logger.warn("csrf_failure", { action: "toggleCouponAction" })
+    redirect("/dashboard/marketing/coupons?error=csrf")
+  }
 
   const id = (formData.get("id") as string) || ""
   const active = formData.get("active") === "true"
@@ -66,6 +98,11 @@ export async function toggleCouponAction(formData: FormData) {
 export async function deleteCouponAction(formData: FormData) {
   const guard = await requireRole("manager")
   if ("response" in guard) redirect("/dashboard/marketing/coupons")
+
+  if (!(await verifyCsrfForAction(formData))) {
+    logger.warn("csrf_failure", { action: "deleteCouponAction" })
+    redirect("/dashboard/marketing/coupons?error=csrf")
+  }
 
   const id = (formData.get("id") as string) || ""
   try {

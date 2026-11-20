@@ -9,10 +9,18 @@ import { productRepository } from "@/repositories/product.repository"
 import { logActivity } from "@/lib/activity"
 import { productCreateSchema } from "@/validators/product"
 import { slugify } from "@/lib/utils"
+import { verifyCsrfForAction } from "@/lib/security/csrf"
+import { audit } from "@/lib/audit"
+import { logger } from "@/lib/logger"
 
 export async function createProductAction(formData: FormData) {
   const guard = await requireRole("manager")
   if ("response" in guard) redirect("/dashboard/products")
+
+  if (!(await verifyCsrfForAction(formData))) {
+    logger.warn("csrf_failure", { action: "createProductAction" })
+    redirect("/dashboard/products/new?error=csrf")
+  }
 
   const raw = {
     name: formData.get("name"),
@@ -67,6 +75,12 @@ export async function createProductAction(formData: FormData) {
       entityId: created._id?.toString(),
       message: `تمت إضافة منتج: ${parsed.data.name}`,
     })
+    await audit({
+      actorRole: session?.role ?? "manager",
+      action: "product.created",
+      target: "product",
+      targetId: created._id?.toString(),
+    })
     revalidatePath("/dashboard/products")
   } catch {
     redirect("/dashboard/products/new?error=save")
@@ -77,6 +91,11 @@ export async function createProductAction(formData: FormData) {
 export async function updateProductAction(id: string, formData: FormData) {
   const guard = await requireRole("manager")
   if ("response" in guard) redirect(`/dashboard/products/${id}`)
+
+  if (!(await verifyCsrfForAction(formData))) {
+    logger.warn("csrf_failure", { action: "updateProductAction" })
+    redirect(`/dashboard/products/${id}?error=csrf`)
+  }
 
   const raw = {
     name: formData.get("name"),
@@ -121,6 +140,12 @@ export async function updateProductAction(id: string, formData: FormData) {
       images: raw.images,
       brand: new mongoose.Types.ObjectId(parsed.data.brandId),
       category: new mongoose.Types.ObjectId(parsed.data.categoryId),
+    })
+    await audit({
+      actorRole: "manager",
+      action: "product.updated",
+      target: "product",
+      targetId: id,
     })
     revalidatePath("/dashboard/products")
     revalidatePath(`/dashboard/products/${id}`)

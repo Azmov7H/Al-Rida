@@ -48,7 +48,7 @@ export function QrScanner({ onDetect }: QrScannerProps) {
       }
     }
     rafRef.current = requestAnimationFrame(() => loopRef.current())
-  }, [onDetect])
+  }, [onDetect, close])
 
   React.useEffect(() => {
     loopRef.current = () => {
@@ -63,7 +63,17 @@ export function QrScanner({ onDetect }: QrScannerProps) {
       return
     }
     try {
-      const BarcodeDetectorCtor = (window as any).BarcodeDetector
+      type BarcodeDetectorFactory = {
+        new (opts?: { formats?: string[] }): {
+          detect: (video: HTMLVideoElement) => Promise<{ rawValue: string }[]>
+        }
+        getSupportedFormats(): string[]
+      }
+      const BarcodeDetectorCtor = (window as { BarcodeDetector?: BarcodeDetectorFactory }).BarcodeDetector
+      if (!BarcodeDetectorCtor) {
+        setError("Browser does not support scanning. Use Chrome/Edge on Android.")
+        return
+      }
       const formats = BarcodeDetectorCtor.getSupportedFormats()
       detectorRef.current = new BarcodeDetectorCtor({
         formats: formats.length ? formats : undefined,

@@ -7,6 +7,7 @@
     "NEXT_PUBLIC_APP_URL",
     "CLOUDINARY_URL",
     "PAYMOB_API_KEY",
+    "LOG_LEVEL",
     "NODE_ENV"
   ],
   "tasks": {

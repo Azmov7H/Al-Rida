@@ -1,9 +1,31 @@
 import { NextResponse, type NextRequest } from "next/server"
 import jwt from "jsonwebtoken"
 import { hasRole, type Role } from "@/constants/roles"
+import { logger } from "@/lib/logger"
 
 const SECRET = process.env.JWT_SECRET ?? "change-me"
 
+// --- Security headers applied to every proxied response ---
+const SECURITY_HEADERS: Record<string, string> = {
+  "Content-Security-Policy": [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https://images.unsplash.com https://res.cloudinary.com",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; "),
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+  "Permissions-Policy": "camera=(), geolocation=(), microphone=(), payment=(self)",
+  "X-Content-Type-Options": "nosniff",
+}
+
+// --- Route protection map ---
 const PUBLIC_PATHS = [
   "/",
   "/shop",
@@ -18,8 +40,10 @@ const PUBLIC_PATHS = [
   "/register",
 ]
 
+// Paths that require a staff (manager/admin) session.
+const STAFF_PREFIX = "/dashboard"
+
 // Static / SEO / verification assets that must NEVER be intercepted by auth.
-// These are served directly from /public and must return 200 with no redirect.
 const PUBLIC_ASSETS = [
   "/robots.txt",
   "/sitemap.xml",
@@ -28,13 +52,12 @@ const PUBLIC_ASSETS = [
   "/google465111a5cdd76198.html",
 ]
 
-const ADMIN_PREFIX = "/dashboard"
-
-function decodeSession(token: string | undefined): { role: Role } | null {
+function decodeSession(token: string | undefined): { id: string; role: Role } | null {
   if (!token) return null
   try {
-    const payload = jwt.verify(token, SECRET) as { role?: Role }
-    return payload.role ? { role: payload.role } : null
+    const payload = jwt.verify(token, SECRET) as { id?: string; role?: Role }
+    if (!payload.id || !payload.role) return null
+    return { id: payload.id, role: payload.role }
   } catch {
     return null
   }
@@ -42,23 +65,25 @@ function decodeSession(token: string | undefined): { role: Role } | null {
 
 function isPublicAsset(pathname: string): boolean {
   if (PUBLIC_ASSETS.includes(pathname)) return true
-  // Google Search Console HTML verification files: /google*.html
   if (/^\/google[a-zA-Z0-9]+\.html$/.test(pathname)) return true
-  // Static directories served from /public
-  if (
+  return (
     pathname.startsWith("/images/") ||
     pathname.startsWith("/icons/") ||
     pathname.startsWith("/fonts/")
-  ) {
-    return true
+  )
+}
+
+function withSecurityHeaders(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value)
   }
-  return false
+  return response
 }
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Bypass all authentication/redirects for static, SEO and verification files.
+  // Bypass auth/redirects for static, SEO and verification files.
   if (isPublicAsset(pathname)) {
     return NextResponse.next()
   }
@@ -68,23 +93,26 @@ export function proxy(request: NextRequest) {
   const isPublic = PUBLIC_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   )
-
   if (isPublic) {
-    return NextResponse.next()
+    return withSecurityHeaders(NextResponse.next())
   }
 
+  // Unauthenticated → login (preserve intended destination).
   if (!session) {
     const url = request.nextUrl.clone()
     url.pathname = "/login"
     url.searchParams.set("redirect", pathname)
-    return NextResponse.redirect(url)
+    logger.warn("auth_required_redirect", { pathname })
+    return withSecurityHeaders(NextResponse.redirect(url))
   }
 
-  if (pathname.startsWith(ADMIN_PREFIX) && !hasRole(session.role, "manager")) {
-    return NextResponse.redirect(new URL("/unauthorized", request.url))
+  // Staff-only area.
+  if (pathname.startsWith(STAFF_PREFIX) && !hasRole(session.role, "manager")) {
+    logger.warn("forbidden_staff_area", { pathname, role: session.role })
+    return withSecurityHeaders(NextResponse.redirect(new URL("/unauthorized", request.url)))
   }
 
-  return NextResponse.next()
+  return withSecurityHeaders(NextResponse.next())
 }
 
 export const config = {
@@ -92,4 +120,3 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|google[a-zA-Z0-9]+\\.html|images/|icons/|fonts/).*)",
   ],
 }
-

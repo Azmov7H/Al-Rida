@@ -10,5 +10,6 @@ import "./review"
 import "./coupon"
 import "./content"
 import "./activity"
+import "./audit-log"
 
 export {}

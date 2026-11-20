@@ -1,9 +1,16 @@
 import jwt from "jsonwebtoken"
 import { cookies } from "next/headers"
+import { logger } from "@/lib/logger"
 
 const SECRET = process.env.JWT_SECRET ?? "change-me"
 const COOKIE_NAME = "session"
 const MAX_AGE = 60 * 60 * 24 * 7 // 7 days
+
+if (process.env.NODE_ENV === "production" && SECRET === "change-me") {
+  logger.error("auth_secret_not_set", null, {
+    hint: "Set JWT_SECRET in production or sessions are insecure.",
+  })
+}
 
 export interface SessionPayload {
   id: string

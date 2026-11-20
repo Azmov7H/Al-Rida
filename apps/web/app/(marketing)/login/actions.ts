@@ -5,8 +5,30 @@ import { createSession } from "@/lib/auth/session"
 import { authService } from "@/services/auth.service"
 import { logActivity } from "@/lib/activity"
 import { loginSchema, registerSchema } from "@/validators/auth"
+import { rateLimit, rateLimitKey } from "@/lib/security/rate-limit"
+import { verifyCsrfForAction } from "@/lib/security/csrf"
+import { audit } from "@/lib/audit"
+import { logger } from "@/lib/logger"
+import { headers } from "next/headers"
+
+async function clientIp(): Promise<string> {
+  const h = await headers()
+  const fwd = h.get("x-forwarded-for")
+  return fwd?.split(",")[0]?.trim() ?? "unknown"
+}
 
 export async function loginAction(formData: FormData) {
+  const ip = await clientIp()
+  const rl = rateLimit(rateLimitKey("login", ip), 5, 15_000)
+  if (!rl.success) {
+    redirect(`/login?error=ratelimit`)
+  }
+
+  if (!(await verifyCsrfForAction(formData))) {
+    logger.warn("csrf_failure", { action: "loginAction" })
+    redirect(`/login?error=csrf`)
+  }
+
   const redirectTo = (formData.get("redirect") as string) || "/dashboard"
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
@@ -18,6 +40,13 @@ export async function loginAction(formData: FormData) {
 
   const user = await authService.verifyCredentials(parsed.data)
   if (!user) {
+    await audit({
+      actorEmail: parsed.data.email,
+      actorRole: "unknown",
+      action: "auth.login.failure",
+      target: "auth",
+      metadata: { ip },
+    })
     redirect(`/login?error=credentials&redirect=${encodeURIComponent(redirectTo)}`)
   }
 
@@ -27,10 +56,28 @@ export async function loginAction(formData: FormData) {
     name: user.name,
     role: user.role,
   })
+  await audit({
+    actorId: user._id.toString(),
+    actorEmail: user.email,
+    actorRole: user.role,
+    action: "auth.login.success",
+    target: "auth",
+    metadata: { ip },
+  })
   redirect(redirectTo)
 }
 
 export async function registerAction(formData: FormData) {
+  const rl = rateLimit(rateLimitKey("register", "global"), 5, 60_000)
+  if (!rl.success) {
+    redirect("/register?error=ratelimit")
+  }
+
+  if (!(await verifyCsrfForAction(formData))) {
+    logger.warn("csrf_failure", { action: "registerAction" })
+    redirect("/register?error=csrf")
+  }
+
   const parsed = registerSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -57,6 +104,14 @@ export async function registerAction(formData: FormData) {
       entity: "user",
       entityId: user._id.toString(),
       message: `انضم مستخدم جديد: ${name} (${email})`,
+    })
+    await audit({
+      actorId: user._id.toString(),
+      actorEmail: email,
+      actorRole: "customer",
+      action: "auth.register",
+      target: "user",
+      targetId: user._id.toString(),
     })
   } catch {
     redirect("/register?error=exists")

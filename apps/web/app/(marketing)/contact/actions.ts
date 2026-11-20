@@ -1,6 +1,8 @@
 "use server"
 
 import { z } from "zod"
+import { verifyCsrfForAction } from "@/lib/security/csrf"
+import { logger } from "@/lib/logger"
 
 const schema = z.object({
   name: z.string().min(2),
@@ -17,6 +19,11 @@ export async function contactAction(
   _state: ContactState,
   formData: FormData,
 ): Promise<ContactState> {
+  if (!(await verifyCsrfForAction(formData))) {
+    logger.warn("csrf_failure", { action: "contactAction" })
+    return { error: "طلب غير صالح." }
+  }
+
   const parsed = schema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),

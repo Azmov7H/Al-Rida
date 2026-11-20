@@ -2,11 +2,22 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Menu, Search, Heart, ShoppingCart, User, Globe, X } from "lucide-react"
+import { Menu, Search, ShoppingCart, User, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { navLinks } from "@/lib/landing-data"
 
-export function Navbar() {
+interface NavbarSession {
+  role: "customer" | "manager" | "admin"
+  name: string
+}
+
+export function Navbar({
+  session = null,
+  brand = "الرضا",
+}: {
+  session?: NavbarSession | null
+  brand?: string
+}) {
   const [open, setOpen] = React.useState(false)
   const [scrolled, setScrolled] = React.useState(false)
 
@@ -18,6 +29,12 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
+  const accountHref = session
+    ? session.role === "customer"
+      ? "/dashboard/profile"
+      : "/dashboard"
+    : "/login"
+
   return (
     <header
       className={cn(
@@ -27,7 +44,7 @@ export function Navbar() {
     >
       <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between gap-4 px-5 md:px-10 lg:px-20">
         <Link href="/" className="text-xl font-bold text-[#0F3B73]">
-          الرضا
+          {brand}
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex">
@@ -43,27 +60,30 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <button aria-label="بحث" className="hidden size-10 rounded-lg text-[#1E293B] transition-colors hover:bg-[#F1F5F9] md:inline-flex">
+          <Link
+            href="/products"
+            aria-label="بحث"
+            className="hidden size-10 rounded-lg text-[#1E293B] transition-colors hover:bg-[#F1F5F9] md:inline-flex"
+          >
             <Search className="size-5" />
-          </button>
-          <button aria-label="المفضلة" className="hidden size-10 rounded-lg text-[#1E293B] transition-colors hover:bg-[#F1F5F9] md:inline-flex">
-            <Heart className="size-5" />
-          </button>
-          <button aria-label="سلة الشراء" className="relative size-10 rounded-lg text-[#1E293B] transition-colors hover:bg-[#F1F5F9]">
+          </Link>
+          <Link
+            href="/cart"
+            aria-label="سلة الشراء"
+            className="relative size-10 rounded-lg text-[#1E293B] transition-colors hover:bg-[#F1F5F9]"
+          >
             <ShoppingCart className="size-5" />
             <span className="absolute -left-1 -top-1 flex size-4 items-center justify-center rounded-full bg-[#F58220] text-[10px] font-bold text-white">
               0
             </span>
-          </button>
-          <button aria-label="تبديل اللغة" className="hidden size-10 rounded-lg text-[#1E293B] transition-colors hover:bg-[#F1F5F9] md:inline-flex">
-            <Globe className="size-5" />
-          </button>
-          <button
-            aria-label="حسابي"
+          </Link>
+          <Link
+            href={accountHref}
+            aria-label={session ? `حساب ${session.name}` : "تسجيل الدخول"}
             className="hidden size-10 rounded-lg text-[#1E293B] transition-colors hover:bg-[#F1F5F9] md:inline-flex"
           >
             <User className="size-5" />
-          </button>
+          </Link>
           <button
             aria-label="القائمة"
             className="size-10 rounded-lg text-[#1E293B] transition-colors hover:bg-[#F1F5F9] lg:hidden"
@@ -88,6 +108,15 @@ export function Navbar() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href={accountHref}
+                className="text-sm font-medium text-[#0F3B73]"
+                onClick={() => setOpen(false)}
+              >
+                {session ? "حسابي" : "تسجيل الدخول"}
+              </Link>
+            </li>
           </ul>
         </nav>
       ) : null}

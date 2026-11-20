@@ -19,3 +19,19 @@ export async function requireRole(
   if (!hasRole(session.role, role)) return { response: forbidden() }
   return { session }
 }
+
+/**
+ * Allows the action if the caller owns the resource (id matches) OR has at
+ * least the required role. Use for user-scoped routes like /api/users/me.
+ */
+export async function requireSelfOrRole(
+  resourceOwnerId: string,
+  role: Role,
+): Promise<{ session: SessionPayload } | { response: NextResponse }> {
+  const session = await getSession()
+  if (!session) return { response: unauthorized() }
+  if (session.id !== resourceOwnerId && !hasRole(session.role, role)) {
+    return { response: forbidden() }
+  }
+  return { session }
+}
