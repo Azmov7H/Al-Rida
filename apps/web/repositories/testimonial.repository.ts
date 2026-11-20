@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto"
+import { connectDB } from "@/lib/db"
 import { Testimonial } from "@/models/testimonial"
 import type { ITestimonial } from "@/models/testimonial"
 import { slugify } from "@/lib/slugify"
@@ -25,10 +26,12 @@ export interface TestimonialRepository {
 
 export const testimonialRepository: TestimonialRepository = {
   async getAll(filter = {}) {
+    await connectDB()
     return (await Testimonial.find(filter).sort({ sortOrder: 1, createdAt: -1 }).lean()) ?? []
   },
 
   async getPublishedVerified() {
+    await connectDB()
     const docs = (await Testimonial.find({ isPublished: true, isVerified: true })
       .sort({ sortOrder: 1 })
       .select({ isPublished: 0, isVerified: 0, slug: 0 })
@@ -37,10 +40,12 @@ export const testimonialRepository: TestimonialRepository = {
   },
 
   async findById(id) {
+    await connectDB()
     return (await Testimonial.findById(id).lean()) ?? null
   },
 
   async upsert(doc: Partial<ITestimonial>) {
+    await connectDB()
     const existing =
       (doc._id && (await Testimonial.findById(doc._id))) ||
       (doc.slug && (await Testimonial.findOne({ slug: doc.slug }))) ||
@@ -58,20 +63,24 @@ export const testimonialRepository: TestimonialRepository = {
   },
 
   async deleteById(id) {
+    await connectDB()
     await Testimonial.deleteOne({ _id: id })
   },
 
   async setPublished(id, isPublished) {
+    await connectDB()
     await Testimonial.updateOne({ _id: id }, { $set: { isPublished } })
     return (await Testimonial.findById(id).lean()) ?? null
   },
 
   async setVerified(id, isVerified) {
+    await connectDB()
     await Testimonial.updateOne({ _id: id }, { $set: { isVerified } })
     return (await Testimonial.findById(id).lean()) ?? null
   },
 
   async countUnpublished() {
+    await connectDB()
     return (await Testimonial.countDocuments({ isPublished: false })) ?? 0
   },
 }

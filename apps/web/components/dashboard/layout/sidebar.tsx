@@ -24,12 +24,26 @@ import {
   FileText,
   Settings,
   UserCircle,
+  House,
+  Link2,
+  BaselineIcon,
+  MapPin,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { SessionPayload } from "@/lib/auth/session"
 
 const NAV = [
   { section: "عام", items: [{ label: "الرئيسية", href: "/dashboard", icon: LayoutDashboard }] },
+  {
+    section: "الشركة",
+    items: [
+      { label: "معلومات الشركة", href: "/dashboard/company", icon: House },
+      { label: "الروابط", href: "/dashboard/links", icon: Link2 },
+      { label: "آراء عملائنا", href: "/dashboard/testimonials", icon: Star },
+      { label: "الخطوط", href: "/dashboard/fonts", icon: BaselineIcon },
+      { label: "العنوان", href: "/dashboard/address", icon: MapPin },
+    ],
+  },
   {
     section: "الكتالوج",
     items: [
