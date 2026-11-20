@@ -11,11 +11,8 @@ export function Section({
   children: React.ReactNode
 }) {
   return (
-    <section
-      id={id}
-      className={cn("w-full px-5 py-16 md:px-10 md:py-20 lg:px-20", className)}
-    >
-      <div className="mx-auto w-full max-w-[1440px]">{children}</div>
+    <section id={id} className={cn("w-full px-5 py-16 md:px-10 md:py-20 lg:px-20", className)}>
+      <div className="mx-auto w-full max-w-[1280px]">{children}</div>
     </section>
   )
 }
@@ -39,13 +36,13 @@ export function SectionTitle({
       )}
     >
       {eyebrow ? (
-        <span className="text-sm font-semibold uppercase tracking-widest text-[#F58220]">
+        <span className="text-sm font-semibold uppercase tracking-widest text-accent">
           {eyebrow}
         </span>
       ) : null}
-      <h2 className="text-3xl font-bold text-[#1E293B] md:text-4xl">{title}</h2>
+      <h2 className="text-3xl font-bold text-ink md:text-4xl">{title}</h2>
       {description ? (
-        <p className="max-w-2xl text-[#64748B]">{description}</p>
+        <p className="max-w-2xl text-muted">{description}</p>
       ) : null}
     </div>
   )

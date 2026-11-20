@@ -16,8 +16,12 @@
   --color-success: #16a34a;
   --color-danger: #dc2626;
 
-  --font-sans: "IBM Plex Sans Arabic", "Inter", ui-sans-serif, system-ui,
-    sans-serif;
+  /* Font variables (set by next/font — class applied on <html>) */
+  --font-sans: var(--font-arabic);
+  --font-arabic: var(--font-cairo);
+  --font-arabic-display: var(--font-readex);
+  --font-english: var(--font-inter);
+  --font-mono: var(--font-jetbrains);
 
   --animate-scroll: scroll 32s linear infinite;
   --animate-fade-up: fade-up 0.5s ease-out both;
