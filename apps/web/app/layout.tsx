@@ -1,5 +1,31 @@
 import "@workspace/ui/globals.css"
+import { Cairo, Inter, JetBrains_Mono, Readex_Pro } from "next/font/google"
+import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
+
+const cairoFont = Cairo({
+  subsets: ["arabic", "latin"],
+  variable: "--font-cairo",
+  weight: ["400", "600", "700", "800"],
+})
+
+const readexFont = Readex_Pro({
+  subsets: ["arabic", "latin"],
+  variable: "--font-readex",
+  weight: ["400", "500", "600", "700"],
+})
+
+const interFont = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+})
+
+const jetbrainsFont = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+  weight: ["400", "500", "700"],
+})
 
 export default function RootLayout({
   children,
@@ -7,21 +33,18 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="bg-[#F8FAFC] text-[#1E293B] antialiased">
+    <html
+      lang="ar"
+      dir="rtl"
+      className={cn(
+        cairoFont.variable,
+        readexFont.variable,
+        interFont.variable,
+        jetbrainsFont.variable,
+      )}
+      suppressHydrationWarning
+    >
+      <body className="bg-bg text-ink antialiased">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

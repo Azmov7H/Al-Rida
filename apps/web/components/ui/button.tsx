@@ -1,20 +1,30 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-type Variant = "primary" | "secondary" | "outline" | "ghost"
-type Size = "sm" | "md" | "lg"
+type Variant =
+  | "primary"
+  | "accent"
+  | "outline"
+  | "ghost"
+  | "danger"
+  | "success"
 
 const variants: Record<Variant, string> = {
-  primary: "bg-[#0F3B73] text-white hover:bg-[#0C2F5C] focus-visible:ring-[#0F3B73]",
-  secondary:
-    "bg-[#F58220] text-white hover:bg-[#DB6F12] focus-visible:ring-[#F58220]",
+  primary:
+    "bg-primary text-white hover:bg-primary-hover focus-visible:ring-primary",
+  accent:
+    "bg-accent text-white hover:bg-accent-hover focus-visible:ring-accent",
   outline:
-    "border border-[#E2E8F0] bg-transparent text-[#1E293B] hover:bg-[#F8FAFC] focus-visible:ring-[#0F3B73]",
+    "bg-transparent border border-line text-ink hover:bg-bg focus-visible:ring-primary",
   ghost:
-    "bg-transparent text-[#1E293B] hover:bg-[#F1F5F9] focus-visible:ring-[#0F3B73]",
+    "bg-transparent text-ink hover:bg-bg focus-visible:ring-primary",
+  danger:
+    "bg-danger text-white hover:opacity-90 focus-visible:ring-danger",
+  success:
+    "bg-success text-white hover:opacity-90 focus-visible:ring-success",
 }
 
-const sizes: Record<Size, string> = {
+const sizes: Record<"sm" | "md" | "lg", string> = {
   sm: "h-10 px-4 text-sm",
   md: "h-12 px-5 text-sm",
   lg: "h-12 px-7 text-base",
@@ -23,7 +33,7 @@ const sizes: Record<Size, string> = {
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant
-  size?: Size
+  size?: keyof typeof sizes
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

@@ -13,8 +13,8 @@
 |---|---|---|---|---|
 | **P0** | Audit & Baseline | 1–2wk | Small | Baseline captured, dirty-tree review (PROJECT_AUDIT.md §17) |
 | **P1** | Brand Identity & Design System | 3–4wk | Medium | Palette, typography, icons, brand guidelines, components v0 |
-| **P2** | Landing Page Transformation | 3–4wk | Large | New landing, door animation, 5 action cards, testimonials view |
-| **P3** | Database & Backend | 3–4wk | Medium | Mongoose models, repos, services, SSR queries, public API, seed script |
+| **P2** | Database & Backend | 3–4wk | Medium | Mongoose models (Company, LinkItem, Testimonial, BrandSettings), repos, services, public APIs, seed script |
+| **P3** | Landing Page Transformation | 3–4wk | Large | New landing (brand header, door animation, 5 action cards, testimonials view) |
 | **P4** | Admin Dashboard | 3–4wk | Large | Company/links/testimonials/fonts/address/settings management + moderation UI |
 | **P5** | Security Hardening | 2–3wk | Medium | Login lockout, argon2 (optional), CSRF + headers, audit extensions, CSP |
 | **P6** | SEO & Performance | 2–3wk | Small/Medium | Structured data, sitemap/robots update, fonts, local images, Lighthouse pass |
@@ -115,110 +115,84 @@
 
 ---
 
-## 3. P2 — Landing Page Transformation (3–4wk)
+## 3. P2 — Database & Backend (3–4wk)
 
 ### 3.1 Objectives
-- New public landing: brand header + 5 action cards + testimonials; door animation; only door runs JS (door component + micro-anims).
+- Mongoose models (Company singleton, LinkItem, Testimonial, BrandSettings), repositories, services, SSR queries (landing + dashboard), public GET APIs, seed script.
 
 ### 3.2 Tasks
-- [ ] **Door animation** (`components/landing/door-animation.tsx`): CSS keyframes; stages as in `BRAND_AND_UI_UX.md §2.2`; replay protection via sessionStorage; reduced-motion support; content `visibility` toggles with door open.
-- [ ] **Landing redesign** — full re-structure per `BRAND_AND_UI_UX.md §3.2`:
-  - Brand header (logo + الرضا + tagline + website)
-  - Main Actions (5 cards, dynamic from `LinkItem`)
-  - Testimonials (dynamic from `Testimonial`, published+verified)
-  - Trust tiles (static)
-  - Contact tiles (phone/email/address, dynamic)
-  - Footer (from `LinkItem` + static)
-- [ ] **WhatsApp card** — `wa.me` link + copy-to-clipboard for wallet (WhatsApp pre-filled message + E.164 phone + Arabic)
-- [ ] **Product-specific micro-anims** — components per `BRAND_AND_UI_UX.md §2.3`
-- [ ] **Landing page SEO** — metadata (`lib/seo/metadata.ts`), OG, local business JSON-LD (`lib/seo/structured-data.ts`) — light version, full in P6.
-- [ ] **Landing routes update** — `app/(marketing)/page.tsx` (new), `app/(marketing)/layout.tsx` (metadata, navbar update).
-- [ ] **Old pages decision implementation** — (A6/A7 — formal — if Remove: DELETE routes from (marketing), update robots/sitemap, 404 handler) — decision point (formal in DECISIONS).
+- [ ] `models/company.ts` — singleton (getOrCreateDefaultCompany) — validators (URL/phone/address/font).
+- [ ] `models/link-item.ts` — CRUD model.
+- [ ] `models/testimonial.ts` — moderated landing testimonials.
+- [ ] `models/brand-settings.ts` — font settings singleton.
+- [ ] `models/user.ts` — enhance (plan: `lastLoginAt`, `failedAttempts`, `lockoutUntil`, `passwordChangedAt` — deferred to P5).
+- [ ] Repos: `company.repository.ts`, `link.repository.ts`, `testimonial.repository.ts`, `brand-settings.repository.ts` (+ user.repository).
+- [ ] Services: `company.service.ts`, `links.service.ts`, `testimonial.service.ts`.
+- [ ] Public GETs: `app/api/company/route.ts`, `app/api/links/route.ts`, `app/api/testimonials/route.ts` (safe projections, rate-limited).
+- [ ] `lib/seo/structured-data.ts` — LocalBusiness/Organization/WebSite/Review/AggregateRating builders (P6-lite).
+- [ ] `scripts/migrate-to-reda.ts` — seed script (Company from Content+FALLBACK, LinkItems, Testimonials, BrandSettings + indexes).
+- [ ] `proxy.ts` — extend PUBLIC_PATHS with `/api/company`, `/api/links`, `/api/testimonials`.
+- [ ] Zod validators: `validators/company.ts`, `validators/link.ts`.
 
 ### 3.3 Dependencies
-- P1 (design tokens) ready.
-- DB not required initially (static defaults for testimonials/links — **fallback chain**).
-- Copy (copywriter review — note as risk: final Arabic copy by team before P3 — note).
+- P1 (design system) done.
+- MONGODB_URI valid (dev running, Atlas).
 
 ### 3.4 Files/Modules affected
-- `app/(marketing)/page.tsx` (REPLACE — old landing gone), `app/(marketing)/layout.tsx` (metadata update), `components/landing/*` (restructured), new: `components/landing/actions-cards.tsx`, `components/landing/whatsapp-card.tsx`, `components/landing/door-animation.tsx`, `components/landing/brand-header.tsx`, `lib/landing-data.ts` (static fallback), `lib/seo/metadata.ts` (update).
-- Legacy: `lib/seo/structured-data.ts` (new).
+- `models/*` (new), `repositories/*` (new), `services/*` (new), `app/api/*` (new GETs), `lib/seo/structured-data.ts` (new), `scripts/migrate-to-reda.ts` (new), `proxy.ts` (extended).
 
 ### 3.5 Expected Deliverables
-- 🔓 Landing v1: brand header + door animation + 5 actions + testimonials (static defaults).
-- Robust perf: LCP/CLS/INP baseline measured (target in `SEO_AND_PERFORMANCE.md §2.1`).
+- 📦 Company + LinkItem + Testimonial + BrandSettings documents after migrate.
+- SSR helpers (company/links/testimonials) for SSR.
+- Public GET /api/company, /api/links, /api/testimonials.
 
 ### 3.6 Acceptance Criteria
-- Door opens exactly once on load; content reveals after; no replay on client-side navigation.
-- 5 actions work (open URLs/links, wallet copy, WhatsApp opens, maps link).
-- Testimonials display 2+ (fallback) — with companies.
-- Micro-anims work (test in browser, headless via Playwright or manual).
-- Page is fast (TTFB + LCP in spec; measured by QA during P2).
-- No dead links (all action URLs validate: `Zod` test, except real production URLs — todo).
+- `scripts/migrate-to-reda.ts` seeds all 4 collections; APIs return shapes match DATABASE_DESIGN.md.
+- `pnpm -w typecheck` passes.
 
 ### 3.7 Testing Requirements
-- Playwright/Manual: door animation, actions, wallet copy, reduced motion.
-- Lighthouse: LCP, CLS, INP (baseline).
-- axe accessibility (mandatory — basic scan).
-
-### 3.8 Risks
-- **E2E copy mismatches** — old pages removal (A6/A7); fallback static links until migration.
-- **Animations change behavior** — iterate during early landing rounds; fix via stages.
-- **TTFB slow** — due to AWS? — new design is simpler (2 DB queries — measure).
+- API smoke tests: GET /api/company, /api/links, /api/testimonials.
+- `scripts/migrate-to-reda.ts` dry-run mode (--dry-run).
 
 ---
 
-## 4. P3 — Database & Backend (3–4wk)
+## 4. P3 — Landing Page Transformation (3–4wk)
 
 ### 4.1 Objectives
-- Mongoose models + repos + services + SSR queries (landing page + dashboard) + public REST + seed script (`migrate-to-reda.ts`).
+- New public landing: brand header + 5 action cards + testimonials; door animation; only door runs JS (door component + micro-anims).
 
 ### 4.2 Tasks
-- [ ] `models/company.ts` — new (singleton).
-- [ ] `models/link-item.ts` — new.
-- [ ] `models/testimonial.ts` — new.
-- [ ] `models/brand-settings.ts` — new.
-- [ ] `models/user.ts` — enhanced (plan: `lastLoginAt`, `failedAttempts`, `lockoutUntil`, `passwordChangedAt`).
-- [ ] Repos (`company.repository.ts`, `link.repository.ts`, `testimonial.repository.ts`, `brand-settings.repository.ts`) — new.
-- [ ] `services/company.service.ts`, `services/links.service.ts`, `services/testimonial.service.ts` — new.
-- [ ] `app/api/company/route.ts`, `app/api/links/route.ts`, `app/api/testimonials/route.ts` — new public GETs (safe projection).
-- [ ] SSR queries — update `app/(marketing)/page.tsx` + `layout.tsx` + `footer.tsx` — `getOrCreateDefaultCompany()`, `getPublishedVerified()`.
-- [ ] `lib/env.ts` — harden (JWT_SECRET fail-fast — §5 P5, but CAN be done in P3 too).
-- [ ] `proxy.ts` — new `PUBLIC_PATHS` (`/api/company`, `/api/links`, `/api/testimonials`), update `PUBLIC_API` guards.
-- [ ] `scripts/migrate-to-reda.ts` — new seed script (runs once before launch).
-- [ ] Indexes: `Company(slug unique)`, `LinkItem(section+enabled+displayOrder, slug unique)`, `Testimonial(isPublished+isVerified+sortOrder)`, `User(email unique)`, `User(role partial)`.
-- [ ] `scripts/seed-content.ts` — update for new models (Company, Testimonials) (optional).
+- [ ] **New landing page** — restructure `app/(marketing)/page.tsx`: BrandHeader + ActionsCards (DB) + Testimonials + WhyUs/Trust + ContactTiles + Footer.
+- [ ] **Testimonials from DB** (`components/landing/testimonials-dynamic.tsx` or reuse `testimonials.tsx`).
+- [ ] **Door animation** — already built in P1 (door.css + door-animation.tsx) — integrate + verify visually (no replay).
+- [ ] **Product-specific micro-anims** — `components/landing/*-interaction.tsx` (handle/lock/cylinder/security hover effects).
+- [ ] **Dynamic Links** — ActionsCards consumes DB links (fallback = static defaults).
+- [ ] **Landing SEO** — metadata (`lib/seo/metadata.ts`), OG (P6-lite), canonical.
+- [ ] **Old pages decision implementation** — A6: remove legacy pages (per A6); A7: freeze dashboard.
+- [ ] Remove legacy landing components (except kept ones — decision).
 
 ### 4.3 Dependencies
-- P2 (landing SSR consumers) ready? (Landing can consume legacy with fallbacks until P2 done — do P3 first, then P2 — order flexible.)
+- P2 (Database & Backend) ready. P1 ready.
 
 ### 4.4 Files/Modules affected
-- `models/*.ts` (new: company, link-item, testimonial, brand-settings; modified: user).
-- `repositories/*.ts` (new: 4 repos).
-- `services/*.ts` (new: company, links, testimonial).
-- `app/api/company|links|testimonials/route.ts` (new).
-- `app/(marketing)/*` (SSR consumers: `page.tsx`, `layout.tsx`, `footer.tsx`, `components/landing/*` — see `SYSTEM_ARCHITECTURE.md` for full list).
-- `proxy.ts` — updated.
-- `lib/env.ts` — hardened.
+- `app/(marketing)/page.tsx` (rewrite).
+- `components/landing/*` (restructured).
+- Legacy: removed pages (per A6) — `app/(marketing)/products/**`, `app/(marketing)/checkout/**`, `app/(marketing)/cart/**`, `app/(marketing)/wishlist/**`, `app/(marketing)/orders/**`, `components/landing/{hero,brands,categories,featured-products,why-us,projects,testimonials,cta,statistics,company-numbers*}`.
 
 ### 4.5 Expected Deliverables
-- 📦 Full data layer + 4 new repos + 3 new services.
-- Public GETs `/api/company`, `/api/links`, `/api/testimonials` — safe projections, rate-limited.
-- Seed script (`migrate-to-reda.ts`) — verified with test DB.
+- 🔓 Landing v1: brand header + door animation + 5 DB-driven action cards + dynamic testimonials.
 
 ### 4.6 Acceptance Criteria
-- DB has `Company`, `LinkItem`, `Testimonial`, `BrandSettings` docs after migrate.
-- SSR page queries all run (no errors; measured in Lighthouse/DevTools).
-- Public APIs return safe projections (no private fields).
-- `pnpm -w typecheck` + `lint` pass.
+- Door opens exactly once on load; content reveals after; no replay on client-side navigation.
+- 5 actions work (links open, wallet copy, WhatsApp opens, maps link).
+- Testimonials display dynamic (published+verified).
+- Legacy landing pages (e-commerce) removed per A6 — 404s work.
+- Page passes: LCP, CLS, INP targets (P6).
 
 ### 4.7 Testing Requirements
-- Unit tests (optional — add later in P7; smoke tests in CI).
-- API contract tests: GET /api/company, /api/links, /api/testimonials — response shapes validated (SSST test: GET endpoints in CI using MSW).
-
-### 4.8 Risks
-- **Data loss on migrate** — always backup Atlas DB before migration.
-- **Missing URL validation in migration** — migration script validates before writing (DB-first approach).
+- Playwright/Manual: door animation, actions, wallet copy, reduced motion.
+- Lighthouse: LCP, CLS, INP (baseline).
+- axe accessibility (mandatory — basic scan).
 
 ---
 
@@ -333,7 +307,7 @@
 - [ ] Mobile check: iPhone SE/iPad/Cloud phone — no horizontal scroll.
 
 ### 7.3 Dependencies
-- P2 (landing live), P3 (public data) — can run parallel-ish after P3.
+- P3 (landing live), P2 (public data) — can run parallel-ish after P2.
 - P1 (fonts) done.
 
 ### 7.4 Files/Modules affected

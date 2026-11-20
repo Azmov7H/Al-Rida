@@ -34,6 +34,8 @@
 | `logoImageUrl` | String | yes | https URL, ≤ 2048 | — | Landing header logo |
 | `coverImageUrl` | String | yes | https URL, ≤ 2048 | — | Optional cover |
 | `phone` | String | yes | ≤ 30, digits+spaces | — | Main company phone |
+| `whatsappNumber` | String | yes | E.164-validated (`+20xxxxxxxxxx`), ≤ 30 | — | WhatsApp contact |
+| `whatsappPreMessage` | String | no | ≤ 120 | — | Pre-filled WhatsApp message |
 | `email` | String | yes | Zod email, ≤ 255 | — | Display/mailto |
 | `address` | Mixed | yes | `{ street, city, governorate, postalCode, country }` | — | Street/Mdu/Gov/Postal/Country |
 | `googleMapsUrl` | String | yes | https URL, ≤ 2048 | — | Interactive map share link |

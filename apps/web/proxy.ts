@@ -38,6 +38,10 @@ const PUBLIC_PATHS = [
   "/contact",
   "/login",
   "/register",
+  // Public business-data APIs (read-only, rate-limited, safe projections)
+  "/api/company",
+  "/api/links",
+  "/api/testimonials",
 ]
 
 // Paths that require a staff (manager/admin) session.
