@@ -1,7 +1,8 @@
 const BASE = "https://images.unsplash.com"
 
 export const images = {
-  hero: `${BASE}/photo-1558002038-1055907df827?auto=format&fit=crop&w=1200&q=80`,
+  /** Local hero (P6 migration from Unsplash). 1200×1800 WebP, ~25KB. */
+  hero: "/images/hero.webp",
   showroom: `${BASE}/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80`,
   warehouse: `${BASE}/photo-1605902711622-cfb43c4437b5?auto=format&fit=crop&w=1200&q=80`,
   installation: `${BASE}/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80`,

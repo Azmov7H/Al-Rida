@@ -74,6 +74,14 @@ interface Review extends Record<string, unknown> {
   datePublished?: string
 }
 
+/**
+ * JSON-LD emitter — plan §2.5: safe for JSON-LD with `</script>` → `\u003c`.
+ * Inline <script> with dangerouslySetInnerHTML only when value is JSON.stringify-able.
+ */
+export function toJsonLd(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c")
+}
+
 export function localBusinessJsonLd(
   company: CompanyData,
   aggregates?: { ratingValue: number; ratingCount: number },
@@ -173,5 +181,26 @@ export function aggregateRatingJsonLd(stats: {
     ratingCount: stats.ratingCount,
     bestRating: 5,
     worstRating: 1,
+  }
+}
+
+/** Render all JSON-LD blocks for the landing page (home). */
+export function landingJsonLdScripts({ company, testimonials }: {
+  company: Parameters<typeof localBusinessJsonLd>[0]
+  testimonials: PublicTestimonial[]
+}) {
+  const aggregates = testimonials.length
+    ? {
+        ratingValue:
+          testimonials.reduce((s, t) => s + t.rating, 0) / testimonials.length,
+        ratingCount: testimonials.length,
+      }
+    : undefined
+  return {
+    localBusiness: localBusinessJsonLd(company, aggregates),
+    organization: organizationJsonLd(company),
+    website: websiteJsonLd(company),
+    reviews: testimonials.map((t) => reviewJsonLd(t)),
+    aggregates,
   }
 }
