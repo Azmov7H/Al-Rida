@@ -68,7 +68,7 @@
 
 | Metric | Target | Tool |
 |---|---|---|
-| LCP (landing) | < 2.5s | web-vitals, Lighthouse |
+| LCP (landing) | < 2.5s | web.dev, Lighthouse (manual — no Chrome in env; `npx lighthouse` locally) |
 | CLS | < 0.1 | web.dev, Lighthouse |
 | INP | < 200ms | web.dev, Lighthouse |
 | TTFB (QR card) | < 400ms | Lighthouse |
